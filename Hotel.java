@@ -33,33 +33,46 @@ public int getValidInt(java.util.Scanner sc, String msg) {
         if (sc.hasNextInt()) {
             return sc.nextInt();
         } else {
-            System.out.println("Invalid input!");
+         System.out.println("Invalid input!");
             sc.next();
-        }
-    }
+        }    }
     public void simpleBooking(java.util.Scanner sc) {
     System.out.print("Enter Name: ");
     sc.nextLine();
-    String name = sc.nextLine();
-    int roomId = getValidInt(sc, "Enter Room ID: ");
-    Room selected = null;
+    String name=sc.nextLine();
+    int roomId=getValidInt(sc, "Enter Room ID: ");
+    Room selected=null;
     for (Room r : rooms) {
-        if (r.id == roomId) {
-            selected = r;
+        if (r.id==roomId) {
+            selected=r;
             break;
-        }
-    }
+        }   }
     if (selected == null) {
-        System.out.println("Invalid Room ID!");
-        return;
-    }
-    java.time.LocalDate in=java.time.LocalDate.now();
+       System.out.println("Invalid Room ID!");
+      return;
+   }
+   java.time.LocalDate in=java.time.LocalDate.now();
     java.time.LocalDate out=in.plusDays(1);
-    Booking b = new Booking(name, in, out);
-    b.addRoom(selected);
-
+  Booking b=new Booking(name, in, out);
+   b.addRoom(selected);
     bookings.add(b);
-
-    System.out.println("Booking Done! ID: " + b.id);
-}
-}
+  System.out.println("Booking Done! ID: " + b.id);
+}}
+public void saveToFile() {
+    try {
+        java.io.FileWriter fw =
+               new java.io.FileWriter("bookings.txt");
+        for (Booking b : bookings) {
+            fw.write("Booking ID: " + b.id + "\n");
+            fw.write("Guest Name: " + b.guestName + "\n");
+            for (Room r : b.rooms) {
+                fw.write("Room: " + r.type +
+                       " | ID: " + r.id + "\n");
+            }
+       fw.write("----------------------\n");
+        }
+        fw.close();
+        System.out.println("Bookings saved to file!");
+    } catch (Exception e) {
+        System.out.println("Error saving file!");
+    }}
