@@ -12,7 +12,8 @@ public class Main {
             System.out.println("\n--- MENU ---");
             System.out.println("1. Show Rooms");
             System.out.println("2. Book Room");
-            System.out.println("3. Exit");
+           System.out.println("6. Save Bookings");
+           System.out.println("7. Exit");
             int ch = h.getValidInt(sc, "Enter choice: ");
             if (ch == 1) {
                 h.showRooms();
@@ -20,14 +21,13 @@ public class Main {
             else if (ch == 2) {
                 h.simpleBooking(sc);
             }
-            else if (ch == 3) {
-                break;
+                  else if (ch == 6) {
+    h.saveToFile();}
+           else if (ch == 7) {
+              break;
             }
-            else {
+           else {
                 System.out.println("Invalid choice!");
-            }
-        }
-
-        sc.close();
-    }
-}
+            }        }
+       sc.close();
+    }}
