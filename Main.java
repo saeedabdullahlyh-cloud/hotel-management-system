@@ -13,6 +13,7 @@ public class Main {
             System.out.println("1. Show Rooms");
             System.out.println("2. Book Room");
            System.out.println("3. Cancel Booking");
+           System.out.println("4. Search Booking");
            System.out.println("6. Save Bookings");
            System.out.println("7. Exit");
             int ch = h.getValidInt(sc, "Enter choice: ");
@@ -26,7 +27,10 @@ public class Main {
     int id = h.getValidInt(sc, "Enter Booking ID: ");
     h.cancel(id);
 }
-                  else if (ch == 6) {
+                  else if (ch == 4) {
+    int roomId =h.getValidInt(sc, "Enter Room ID: ");
+    h.searchByRoom(roomId);
+}   else if (ch == 6) {
     h.saveToFile();}
            else if (ch == 7) {
               break;
