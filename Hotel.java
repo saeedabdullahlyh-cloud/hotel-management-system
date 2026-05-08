@@ -84,5 +84,20 @@ public void saveToFile() {
     } else {
         System.out.println("Booking not found!");
     }
-}
+    public void searchByRoom(int roomId) {
+    boolean found = false;
+    for (Booking b : bookings) {
+        for (Room r : b.rooms) {
+            if (r.id == roomId) {
+                System.out.println("\n--- BOOKING FOUND ---");
+                System.out.println("Guest Name : " + b.guestName);
+                System.out.println("Room Type  : " + r.type);
+                System.out.println("Room ID    : " + r.id);
+                System.out.println("Stay       : " + b.in + " to " + b.out);
+                found = true;
+            }   }  }
+    if (!found) {
+        System.out.println("No booking found!");
+    }}
+
 
