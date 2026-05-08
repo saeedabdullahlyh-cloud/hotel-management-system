@@ -75,4 +75,14 @@ public void saveToFile() {
         System.out.println("Bookings saved to file!");
     } catch (Exception e) {
         System.out.println("Error saving file!");
-    }}
+    }
+    public void cancel(int id) {
+    boolean removed=bookings.removeIf(b -> b.id == id);
+    if (removed) {
+        System.out.println("Booking cancelled!");
+        saveToFile();
+    } else {
+        System.out.println("Booking not found!");
+    }
+}
+
