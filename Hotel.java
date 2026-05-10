@@ -101,6 +101,66 @@ public void saveToFile() {
             }   }  }
     if (!found) {
         System.out.println("No booking found!");
-    }}
+    }
+public void loadBookingsFromDB() {
+
+    try {
+
+        Connection con =
+                DatabaseConnection.getConnection();
+
+        String query =
+                "SELECT * FROM bookings";
+
+        PreparedStatement ps =
+                con.prepareStatement(query);
+
+        ResultSet rs =
+                ps.executeQuery();
+
+        while (rs.next()) {
+
+            String guestName =
+                    rs.getString("guest_name");
+
+            int roomId =
+                    rs.getInt("room_id");
+
+            String roomType =
+                    rs.getString("room_type");
+
+            LocalDate in =
+                    rs.getDate("check_in")
+                            .toLocalDate();
+
+            LocalDate out =
+                    rs.getDate("check_out")
+                            .toLocalDate();
+
+            Booking b =
+                    new Booking(
+                            guestName,
+                            in,
+                            out);
+
+            Room r =
+                    new Room(
+                            roomId,
+                            roomType);
+
+            b.addRoom(r);
+
+            bookings.add(b);
+        }
+
+        System.out.println(
+                "Bookings loaded from database!");
+    }
+
+    catch (Exception e) {
+
+        e.printStackTrace();
+    }
+}}
 
 
