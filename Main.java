@@ -2,6 +2,7 @@ package com.hotel;
 import java.util.Scanner;
 public class Main {
    public static void main(String[] args) {
+      DatabaseConnection.getConnection();
         Scanner sc = new Scanner(System.in);
         Hotel h = new Hotel();
         h.addRoom(new Room(1, "Single"));
