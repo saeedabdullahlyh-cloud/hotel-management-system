@@ -1,299 +1,926 @@
 package com.hotel.view;
 
-import com.hotel.service.Hotel;
-import com.hotel.model.Room;
-
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.HashMap;
+
 public class HotelGUI extends JFrame {
 
-    // ===== HOTEL OBJECT =====
+    JTextField nameField;
+    JTextField checkInField;
+    JTextField checkOutField;
+    JTextField roomCountField;
 
-    Hotel h = new Hotel();
+    JCheckBox poolBox;
+    JCheckBox gymBox;
+    JCheckBox breakfastBox;
+    JCheckBox lunchBox;
+    JCheckBox dinnerBox;
 
-    // ===== BUTTONS =====
+    JButton bookButton;
+    JButton showRoomsButton;
+    JButton revenueButton;
+    JButton searchButton;
+    JButton exitButton;
 
-    JButton bookBtn;
-    JButton showBtn;
-    JButton searchBtn;
-    JButton cancelBtn;
-    JButton revenueBtn;
-    JButton exitBtn;
+    JTextArea roomStatusArea;
+
+    JPanel dynamicRoomPanel;
+
+    ArrayList<JComboBox<String>> roomTypeBoxes =
+            new ArrayList<>();
+
+    ArrayList<Integer> bookedRooms =
+            new ArrayList<>();
+
+    HashMap<Integer, String> bookingRecords =
+            new HashMap<>();
+
+    int totalRevenue = 0;
 
     public HotelGUI() {
 
-        // ===== WINDOW SETTINGS =====
+        setTitle("FINAL HOTEL MANAGEMENT SYSTEM");
 
-        setTitle("Hotel Management System");
-
-        setSize(500, 500);
-
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(1500, 900);
 
         setLocationRelativeTo(null);
 
-        setLayout(new GridLayout(6, 1, 10, 10));
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // ===== BUTTONS =====
+        setLayout(new BorderLayout());
 
-        bookBtn =
-                new JButton("Book Room");
+        // ================= HEADER =================
 
-        showBtn =
-                new JButton("Show Rooms");
+        JPanel header = new JPanel();
 
-        searchBtn =
-                new JButton("Search Booking");
+        header.setBackground(
+                new Color(44, 62, 80)
+        );
 
-        cancelBtn =
-                new JButton("Cancel Booking");
+        JLabel title = new JLabel(
+                "HOTEL MANAGEMENT SYSTEM"
+        );
 
-        revenueBtn =
-                new JButton("Total Revenue");
+        title.setForeground(Color.WHITE);
 
-        exitBtn =
-                new JButton("Exit");
+        title.setFont(
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        42
+                )
+        );
 
-        // ===== ADD BUTTONS =====
+        header.add(title);
 
-        add(bookBtn);
+        add(header, BorderLayout.NORTH);
 
-        add(showBtn);
+        // ================= MAIN PANEL =================
 
-        add(searchBtn);
+        JPanel mainPanel = new JPanel(
+                new GridLayout(
+                        1,
+                        2,
+                        20,
+                        20
+                )
+        );
 
-        add(cancelBtn);
+        mainPanel.setBorder(
+                BorderFactory.createEmptyBorder(
+                        20,
+                        20,
+                        20,
+                        20
+                )
+        );
 
-        add(revenueBtn);
+        // ================= LEFT CONTAINER =================
 
-        add(exitBtn);
+        JPanel leftContainer =
+                new JPanel();
 
-        // ===== DEFAULT ROOMS =====
+        leftContainer.setLayout(
+                new BorderLayout(
+                        15,
+                        15
+                )
+        );
 
-        for (int i = 1; i <= 25; i++) {
+        // ================= FORM PANEL =================
 
-            if (i <= 10)
-                h.addRoom(new Room(i, "Single"));
+        JPanel formPanel =
+                new JPanel();
 
-            else if (i <= 15)
-                h.addRoom(new Room(i, "Double"));
+        formPanel.setLayout(
+                new GridLayout(
+                        9,
+                        2,
+                        12,
+                        12
+                )
+        );
 
-            else if (i <= 20)
-                h.addRoom(new Room(i, "Sweet"));
+        Font labelFont =
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        22
+                );
 
-            else
-                h.addRoom(new Room(i, "Luxury"));
+        Font fieldFont =
+                new Font(
+                        "Arial",
+                        Font.PLAIN,
+                        18
+                );
+
+        JLabel nameLabel =
+                new JLabel("Customer Name:");
+
+        JLabel inLabel =
+                new JLabel("Check-In Day:");
+
+        JLabel outLabel =
+                new JLabel("Check-Out Day:");
+
+        JLabel roomLabel =
+                new JLabel("How Many Rooms:");
+
+        nameLabel.setFont(labelFont);
+        inLabel.setFont(labelFont);
+        outLabel.setFont(labelFont);
+        roomLabel.setFont(labelFont);
+
+        nameField = new JTextField();
+        checkInField = new JTextField();
+        checkOutField = new JTextField();
+        roomCountField = new JTextField();
+
+        JTextField[] fields = {
+
+                nameField,
+
+                checkInField,
+
+                checkOutField,
+
+                roomCountField
+        };
+
+        for (JTextField field : fields) {
+
+            field.setFont(fieldFont);
+
+            field.setPreferredSize(
+                    new Dimension(
+                            300,
+                            45
+                    )
+            );
         }
 
-        // ===== EXIT BUTTON =====
+        // ================= ENTER NAVIGATION =================
 
-        exitBtn.addActionListener(new ActionListener() {
+        nameField.addActionListener(e ->
+                checkInField.requestFocus());
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        checkInField.addActionListener(e ->
+                checkOutField.requestFocus());
 
-                System.exit(0);
-            }
-        });
+        checkOutField.addActionListener(e ->
+                roomCountField.requestFocus());
 
-        // ===== SHOW BUTTON =====
+        // ================= AUTO ROOM GENERATION =================
 
-        showBtn.addActionListener(new ActionListener() {
+        roomCountField.addActionListener(e -> {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
+            try {
 
-                JOptionPane.showMessageDialog(
-                        null,
-                        "Rooms Loaded Successfully!"
-                );
-            }
-        });
+                dynamicRoomPanel.removeAll();
 
-        // ===== BOOK BUTTON =====
+                roomTypeBoxes.clear();
 
-        bookBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-                String name =
-                        JOptionPane.showInputDialog(
-                                "Enter Guest Name");
-
-                String roomIdText =
-                        JOptionPane.showInputDialog(
-                                "Enter Room ID");
-
-                String[] roomTypes = {
-                        "Single",
-                        "Double",
-                        "Sweet",
-                        "Luxury"
-                };
-
-                String roomType =
-                        (String) JOptionPane.showInputDialog(
-                                null,
-                                "Select Room Type",
-                                "Room Type",
-                                JOptionPane.QUESTION_MESSAGE,
-                                null,
-                                roomTypes,
-                                roomTypes[0]
+                int roomCount =
+                        Integer.parseInt(
+                                roomCountField
+                                        .getText()
+                                        .trim()
                         );
 
+                if (roomCount < 1 ||
+                        roomCount > 20) {
+
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Room count must be 1-20"
+                    );
+
+                    return;
+                }
+
+                for (int i = 1;
+                     i <= roomCount;
+                     i++) {
+
+                    JPanel roomPanel =
+                            new JPanel(
+                                    new BorderLayout(
+                                            15,
+                                            15
+                                    )
+                            );
+
+                    roomPanel.setBorder(
+                            BorderFactory.createLineBorder(
+                                    Color.GRAY,
+                                    2
+                            )
+                    );
+
+                    roomPanel.setPreferredSize(
+                            new Dimension(
+                                    600,
+                                    80
+                            )
+                    );
+
+                    JLabel roomTypeLabel =
+                            new JLabel(
+                                    "Room "
+                                            + i
+                                            + " Type:"
+                            );
+
+                    roomTypeLabel.setFont(
+                            new Font(
+                                    "Arial",
+                                    Font.BOLD,
+                                    22
+                            )
+                    );
+
+                    JComboBox<String> combo =
+                            new JComboBox<>(
+                                    new String[]{
+
+                                            "Single Room - $50",
+
+                                            "Double Room - $100",
+
+                                            "Sweet Room - $150",
+
+                                            "Luxury Room - $300"
+                                    }
+                            );
+
+                    combo.setFont(
+                            new Font(
+                                    "Arial",
+                                    Font.PLAIN,
+                                    20
+                            )
+                    );
+
+                    combo.setPreferredSize(
+                            new Dimension(
+                                    350,
+                                    50
+                            )
+                    );
+
+                    roomTypeBoxes.add(combo);
+
+                    roomPanel.add(
+                            roomTypeLabel,
+                            BorderLayout.WEST
+                    );
+
+                    roomPanel.add(
+                            combo,
+                            BorderLayout.CENTER
+                    );
+
+                    dynamicRoomPanel.add(roomPanel);
+                }
+
+                dynamicRoomPanel.revalidate();
+
+                dynamicRoomPanel.repaint();
+            }
+
+            catch (Exception ex) {
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Enter valid room count"
+                );
+            }
+        });
+
+        // ================= ADD FIELDS =================
+
+        formPanel.add(nameLabel);
+        formPanel.add(nameField);
+
+        formPanel.add(inLabel);
+        formPanel.add(checkInField);
+
+        formPanel.add(outLabel);
+        formPanel.add(checkOutField);
+
+        formPanel.add(roomLabel);
+        formPanel.add(roomCountField);
+
+        // ================= ACTIVITIES =================
+
+        poolBox =
+                new JCheckBox(
+                        "Swimming Pool - $20"
+                );
+
+        gymBox =
+                new JCheckBox(
+                        "Gym Access - $15"
+                );
+
+        breakfastBox =
+                new JCheckBox(
+                        "Breakfast - $10"
+                );
+
+        lunchBox =
+                new JCheckBox(
+                        "Lunch - $20"
+                );
+
+        dinnerBox =
+                new JCheckBox(
+                        "Dinner - $25"
+                );
+
+        JCheckBox[] boxes = {
+
+                poolBox,
+
+                gymBox,
+
+                breakfastBox,
+
+                lunchBox,
+
+                dinnerBox
+        };
+
+        for (JCheckBox box : boxes) {
+
+            box.setFont(
+                    new Font(
+                            "Arial",
+                            Font.PLAIN,
+                            18
+                    )
+            );
+
+            formPanel.add(box);
+        }
+
+        leftContainer.add(
+                formPanel,
+                BorderLayout.NORTH
+        );
+
+        // ================= ROOM PANEL =================
+
+        dynamicRoomPanel =
+                new JPanel();
+
+        dynamicRoomPanel.setLayout(
+                new GridLayout(
+                        10,
+                        1,
+                        20,
+                        20
+                )
+        );
+
+        dynamicRoomPanel.setBorder(
+                BorderFactory.createTitledBorder(
+                        BorderFactory.createLineBorder(
+                                Color.GRAY,
+                                2
+                        ),
+                        "Room Type Selection",
+                        0,
+                        0,
+                        new Font(
+                                "Arial",
+                                Font.BOLD,
+                                26
+                        )
+                )
+        );
+
+        JScrollPane roomScroll =
+                new JScrollPane(
+                        dynamicRoomPanel
+                );
+
+        roomScroll.setPreferredSize(
+                new Dimension(
+                        700,
+                        500
+                )
+        );
+
+        leftContainer.add(
+                roomScroll,
+                BorderLayout.CENTER
+        );
+
+        mainPanel.add(leftContainer);
+
+        // ================= ROOM STATUS =================
+
+        roomStatusArea =
+                new JTextArea();
+
+        roomStatusArea.setEditable(false);
+
+        roomStatusArea.setFont(
+                new Font(
+                        "Monospaced",
+                        Font.BOLD,
+                        20
+                )
+        );
+
+        updateRoomStatus();
+
+        JScrollPane scrollPane =
+                new JScrollPane(
+                        roomStatusArea
+                );
+
+        mainPanel.add(scrollPane);
+
+        add(mainPanel, BorderLayout.CENTER);
+
+        // ================= BUTTON PANEL =================
+
+        JPanel buttonPanel =
+                new JPanel(
+                        new GridLayout(
+                                1,
+                                5,
+                                15,
+                                15
+                        )
+                );
+
+        bookButton =
+                new JButton("BOOK ROOM");
+
+        showRoomsButton =
+                new JButton("SHOW ROOMS");
+
+        revenueButton =
+                new JButton("REVENUE");
+
+        searchButton =
+                new JButton("SEARCH ROOM");
+
+        exitButton =
+                new JButton("EXIT");
+
+        JButton[] buttons = {
+
+                bookButton,
+
+                showRoomsButton,
+
+                revenueButton,
+
+                searchButton,
+
+                exitButton
+        };
+
+        for (JButton btn : buttons) {
+
+            btn.setFont(
+                    new Font(
+                            "Arial",
+                            Font.BOLD,
+                            22
+                    )
+            );
+
+            btn.setForeground(Color.WHITE);
+
+            btn.setFocusPainted(false);
+
+            btn.setPreferredSize(
+                    new Dimension(
+                            200,
+                            60
+                    )
+            );
+        }
+
+        bookButton.setBackground(
+                new Color(46, 204, 113)
+        );
+
+        showRoomsButton.setBackground(
+                new Color(155, 89, 182)
+        );
+
+        revenueButton.setBackground(
+                new Color(243, 156, 18)
+        );
+
+        searchButton.setBackground(
+                new Color(52, 152, 219)
+        );
+
+        exitButton.setBackground(
+                new Color(231, 76, 60)
+        );
+
+        buttonPanel.add(bookButton);
+
+        buttonPanel.add(showRoomsButton);
+
+        buttonPanel.add(revenueButton);
+
+        buttonPanel.add(searchButton);
+
+        buttonPanel.add(exitButton);
+
+        add(buttonPanel, BorderLayout.SOUTH);
+
+        // ================= BOOK BUTTON =================
+
+        bookButton.addActionListener(e -> {
+
+            try {
+
+                String name =
+                        nameField.getText().trim();
+
+                if (!name.matches("[a-zA-Z ]+")) {
+
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Invalid customer name"
+                    );
+
+                    return;
+                }
+
+                int inDay =
+                        Integer.parseInt(
+                                checkInField.getText().trim()
+                        );
+
+                int outDay =
+                        Integer.parseInt(
+                                checkOutField.getText().trim()
+                        );
+
+                int totalDays =
+                        outDay - inDay;
+
+                if (totalDays <= 0) {
+
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Invalid stay duration"
+                    );
+
+                    return;
+                }
+
+                int total = 0;
+
+                StringBuilder invoice =
+                        new StringBuilder();
+
+                invoice.append(
+                        "=========== HOTEL INVOICE ===========\n\n"
+                );
+
+                invoice.append(
+                        "Customer : "
+                                + name
+                                + "\n\n"
+                );
+
+                invoice.append(
+                        "Stay Days : "
+                                + totalDays
+                                + "\n\n"
+                );
+
+                for (int i = 0;
+                     i < roomTypeBoxes.size();
+                     i++) {
+
+                    int roomId = i + 1;
+
+                    String roomType =
+                            roomTypeBoxes
+                                    .get(i)
+                                    .getSelectedItem()
+                                    .toString();
+
+                    int price = 0;
+
+                    if (roomType.contains("Single"))
+                        price = 50;
+
+                    else if (roomType.contains("Double"))
+                        price = 100;
+
+                    else if (roomType.contains("Sweet"))
+                        price = 150;
+
+                    else if (roomType.contains("Luxury"))
+                        price = 300;
+
+                    int roomTotal =
+                            price * totalDays;
+
+                    total += roomTotal;
+
+                    bookedRooms.add(roomId);
+
+                    invoice.append(
+                            "Room ID : "
+                                    + roomId
+                                    + "\n"
+                    );
+
+                    invoice.append(
+                            "Room Type : "
+                                    + roomType
+                                    + "\n"
+                    );
+
+                    invoice.append(
+                            "$"
+                                    + price
+                                    + " × "
+                                    + totalDays
+                                    + " Days = $"
+                                    + roomTotal
+                                    + "\n\n"
+                    );
+
+                    bookingRecords.put(
+                            roomId,
+
+                            "Customer : "
+                                    + name
+                                    + "\n"
+                                    + "Room Type : "
+                                    + roomType
+                                    + "\n"
+                                    + "Stay Days : "
+                                    + totalDays
+                    );
+                }
+
+                invoice.append(
+                        "=========== ACTIVITIES ===========\n\n"
+                );
+
+                if (poolBox.isSelected()) {
+
+                    total += 20;
+
+                    invoice.append(
+                            "Swimming Pool = $20\n"
+                    );
+                }
+
+                if (gymBox.isSelected()) {
+
+                    total += 15;
+
+                    invoice.append(
+                            "Gym Access = $15\n"
+                    );
+                }
+
+                if (breakfastBox.isSelected()) {
+
+                    total += 10;
+
+                    invoice.append(
+                            "Breakfast = $10\n"
+                    );
+                }
+
+                if (lunchBox.isSelected()) {
+
+                    total += 20;
+
+                    invoice.append(
+                            "Lunch = $20\n"
+                    );
+                }
+
+                if (dinnerBox.isSelected()) {
+
+                    total += 25;
+
+                    invoice.append(
+                            "Dinner = $25\n"
+                    );
+                }
+
+                invoice.append(
+                        "\n===================================\n"
+                );
+
+                invoice.append(
+                        "GRAND TOTAL = $"
+                                + total
+                );
+
+                totalRevenue += total;
+
+                updateRoomStatus();
+
+                JTextArea area =
+                        new JTextArea(
+                                invoice.toString()
+                        );
+
+                area.setFont(
+                        new Font(
+                                "Monospaced",
+                                Font.BOLD,
+                                18
+                        )
+                );
+
+                area.setEditable(false);
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        new JScrollPane(area),
+                        "FINAL INVOICE",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+            }
+
+            catch (Exception ex) {
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Enter valid input values"
+                );
+            }
+        });
+
+        // ================= SHOW ROOMS =================
+
+        showRoomsButton.addActionListener(e -> {
+
+            updateRoomStatus();
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    new JScrollPane(roomStatusArea),
+                    "ROOM STATUS",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        });
+
+        // ================= REVENUE =================
+
+        revenueButton.addActionListener(e -> {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Total Hotel Revenue = $"
+                            + totalRevenue
+            );
+        });
+
+        // ================= SEARCH ROOM =================
+
+        searchButton.addActionListener(e -> {
+
+            try {
+
+                String input =
+                        JOptionPane.showInputDialog(
+                                this,
+                                "Enter Room ID:"
+                        );
+
+                if (input == null) {
+
+                    return;
+                }
+
                 int roomId =
-                        Integer.parseInt(roomIdText);
+                        Integer.parseInt(input);
 
-                Room r =
-                        new Room(roomId, roomType);
+                if (bookingRecords.containsKey(roomId)) {
 
-                // ===== ACTIVITIES CHECKBOXES =====
+                    JTextArea area =
+                            new JTextArea(
+                                    bookingRecords.get(roomId)
+                            );
 
-                JCheckBox swim =
-                        new JCheckBox(
-                                "Swimming Pool ($20)");
+                    area.setFont(
+                            new Font(
+                                    "Arial",
+                                    Font.BOLD,
+                                    18
+                            )
+                    );
 
-                JCheckBox gym =
-                        new JCheckBox(
-                                "Gym Access ($15)");
+                    area.setEditable(false);
 
-                JCheckBox sports =
-                        new JCheckBox(
-                                "Indoor Sports ($25)");
+                    JOptionPane.showMessageDialog(
+                            this,
+                            new JScrollPane(area),
+                            "ROOM RECORD",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+                }
 
-                JCheckBox breakfast =
-                        new JCheckBox(
-                                "Breakfast Buffet ($10)");
+                else {
 
-                JCheckBox lunch =
-                        new JCheckBox(
-                                "Lunch Buffet ($20)");
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "No booking found for Room ID "
+                                    + roomId
+                    );
+                }
+            }
 
-                JCheckBox dinner =
-                        new JCheckBox(
-                                "Dinner Buffet ($25)");
-
-                JCheckBox airport =
-                        new JCheckBox(
-                                "Airport Pickup ($30)");
-
-                JPanel panel =
-                        new JPanel();
-
-                panel.setLayout(
-                        new GridLayout(0, 1));
-
-                panel.add(swim);
-
-                panel.add(gym);
-
-                panel.add(sports);
-
-                panel.add(breakfast);
-
-                panel.add(lunch);
-
-                panel.add(dinner);
-
-                panel.add(airport);
+            catch (Exception ex) {
 
                 JOptionPane.showMessageDialog(
-                        null,
-                        panel,
-                        "Select Activities",
-                        JOptionPane.PLAIN_MESSAGE
-                );
-
-                // ===== SELECTED ACTIVITIES =====
-
-                String activities = "";
-
-                if (swim.isSelected())
-                    activities += "Swimming Pool\n";
-
-                if (gym.isSelected())
-                    activities += "Gym Access\n";
-
-                if (sports.isSelected())
-                    activities += "Indoor Sports\n";
-
-                if (breakfast.isSelected())
-                    activities += "Breakfast Buffet\n";
-
-                if (lunch.isSelected())
-                    activities += "Lunch Buffet\n";
-
-                if (dinner.isSelected())
-                    activities += "Dinner Buffet\n";
-
-                if (airport.isSelected())
-                    activities += "Airport Pickup\n";
-
-                if (activities.equals(""))
-                    activities = "No Activities Selected";
-
-                // ===== SUCCESS MESSAGE =====
-
-                JOptionPane.showMessageDialog(
-                        null,
-                        "Room Booked Successfully!\n\n"
-                                + "Guest: " + name
-                                + "\nRoom ID: " + roomId
-                                + "\nType: " + roomType
-                                + "\n\nActivities:\n"
-                                + activities
+                        this,
+                        "Invalid Room ID"
                 );
             }
         });
 
-        // ===== SEARCH BUTTON =====
+        // ================= EXIT =================
 
-        searchBtn.addActionListener(new ActionListener() {
+        exitButton.addActionListener(e -> {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-                JOptionPane.showMessageDialog(
-                        null,
-                        "Search Feature Coming Next!"
-                );
-            }
+            System.exit(0);
         });
-
-        // ===== CANCEL BUTTON =====
-
-        cancelBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-                JOptionPane.showMessageDialog(
-                        null,
-                        "Cancel Feature Coming Next!"
-                );
-            }
-        });
-
-        // ===== REVENUE BUTTON =====
-
-        revenueBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-                JOptionPane.showMessageDialog(
-                        null,
-                        "Revenue Feature Coming Next!"
-                );
-            }
-        });
-
-        // ===== SHOW WINDOW =====
 
         setVisible(true);
+    }
+
+    // ================= ROOM STATUS =================
+
+    public void updateRoomStatus() {
+
+        StringBuilder sb =
+                new StringBuilder();
+
+        sb.append(
+                "=========== ROOM STATUS ===========\n\n"
+        );
+
+        for (int i = 1; i <= 20; i++) {
+
+            if (bookedRooms.contains(i)) {
+
+                sb.append(
+                        "Room ID "
+                                + i
+                                + " → BOOKED\n"
+                );
+            }
+
+            else {
+
+                sb.append(
+                        "Room ID "
+                                + i
+                                + " → AVAILABLE\n"
+                );
+            }
+        }
+
+        roomStatusArea.setText(
+                sb.toString()
+        );
     }
 }
