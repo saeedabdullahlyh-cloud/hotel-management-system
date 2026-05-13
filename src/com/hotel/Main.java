@@ -1,5 +1,5 @@
 package com.hotel;
-
+import com.hotel.controller.RoomController;
 import com.hotel.model.CardPayment;
 import com.hotel.model.CashPayment;
 import com.hotel.model.Payment;
@@ -25,7 +25,8 @@ public class Main {
         Scanner sc = new Scanner(System.in);
 
         Hotel h = new Hotel();
-
+        RoomController roomController =
+                new RoomController(h);
         HotelController hotelController =
                 new HotelController(h);
 
@@ -100,7 +101,7 @@ public class Main {
                 LocalDate out =
                         LocalDate.of(2026, 5, d2);
 
-                hotelController.showRooms(in, out);
+                roomController.showRooms(in, out);
             }
 
             // ================= BOOK =================
@@ -183,7 +184,7 @@ public class Main {
                         h.getValidInt(sc,
                                 "Enter Room ID: ");
 
-                bookingController.searchBooking(roomId);
+                roomController.searchRoom(roomId);
             }
 
             // ================= FILE SAVE =================
