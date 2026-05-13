@@ -4,8 +4,14 @@ import com.hotel.model.CardPayment;
 import com.hotel.model.CashPayment;
 import com.hotel.model.Payment;
 import com.hotel.model.Room;
+
 import com.hotel.service.Hotel;
+
 import com.hotel.view.HotelGUI;
+
+import com.hotel.controller.BookingController;
+import com.hotel.controller.HotelController;
+import com.hotel.controller.PaymentController;
 
 import java.time.LocalDate;
 import java.util.Scanner;
@@ -13,27 +19,44 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
+
         new HotelGUI();
+
         Scanner sc = new Scanner(System.in);
 
         Hotel h = new Hotel();
 
+        HotelController hotelController =
+                new HotelController(h);
+
+        BookingController bookingController =
+                new BookingController(h);
+
+//        PaymentController paymentController =
+//                new PaymentController();
+
         // LOAD BOOKINGS FROM DATABASE
+
         h.loadBookingsFromDB();
 
         // DEFAULT ROOMS
+
         for (int i = 1; i <= 25; i++) {
 
             if (i <= 10)
+
                 h.addRoom(new Room(i, "Single"));
 
             else if (i <= 15)
+
                 h.addRoom(new Room(i, "Double"));
 
             else if (i <= 20)
+
                 h.addRoom(new Room(i, "Sweet"));
 
             else
+
                 h.addRoom(new Room(i, "Luxury"));
         }
 
@@ -77,7 +100,7 @@ public class Main {
                 LocalDate out =
                         LocalDate.of(2026, 5, d2);
 
-                h.showRooms(in, out);
+                hotelController.showRooms(in, out);
             }
 
             // ================= BOOK =================
@@ -125,7 +148,13 @@ public class Main {
                                 ? new CashPayment()
                                 : new CardPayment();
 
-                h.book(name, in, out, pay, sc);
+                bookingController.bookRoom(
+                        name,
+                        in,
+                        out,
+                        pay,
+                        sc
+                );
             }
 
             // ================= CANCEL =================
@@ -136,14 +165,14 @@ public class Main {
                         h.getValidInt(sc,
                                 "Enter Booking ID: ");
 
-                h.cancel(id);
+                bookingController.cancelBooking(id);
             }
 
             // ================= REVENUE =================
 
             else if (ch == 4) {
 
-                h.revenue();
+                hotelController.showRevenue();
             }
 
             // ================= SEARCH =================
@@ -154,7 +183,7 @@ public class Main {
                         h.getValidInt(sc,
                                 "Enter Room ID: ");
 
-                h.searchByRoom(roomId);
+                bookingController.searchBooking(roomId);
             }
 
             // ================= FILE SAVE =================

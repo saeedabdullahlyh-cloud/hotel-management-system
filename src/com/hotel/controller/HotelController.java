@@ -2,6 +2,8 @@ package com.hotel.controller;
 
 import com.hotel.service.Hotel;
 
+import java.time.LocalDate;
+
 public class HotelController {
 
     private Hotel hotel;
@@ -11,8 +13,14 @@ public class HotelController {
         this.hotel = hotel;
     }
 
-    public Hotel getHotel() {
+    public void showRooms(LocalDate in,
+                          LocalDate out) {
 
-        return hotel;
+        hotel.showRooms(in, out);
+    }
+
+    public void showRevenue() {
+
+        hotel.revenue();
     }
 }
