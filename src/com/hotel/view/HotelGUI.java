@@ -1,9 +1,16 @@
 package com.hotel.view;
 
+import com.hotel.controller.RoomController;
+import com.hotel.model.Booking;
+import com.hotel.model.Room;
+import com.hotel.model.Service;
+import com.hotel.service.PaymentService;
+
 import javax.swing.*;
 import java.awt.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
 
 public class HotelGUI extends JFrame {
 
@@ -17,11 +24,14 @@ public class HotelGUI extends JFrame {
     JCheckBox breakfastBox;
     JCheckBox lunchBox;
     JCheckBox dinnerBox;
+    JCheckBox indoorSportsBox;
+    JCheckBox outdoorSportsBox;
 
     JButton bookButton;
     JButton showRoomsButton;
     JButton revenueButton;
     JButton searchButton;
+    JButton cancelButton;
     JButton exitButton;
 
     JTextArea roomStatusArea;
@@ -31,19 +41,16 @@ public class HotelGUI extends JFrame {
     ArrayList<JComboBox<String>> roomTypeBoxes =
             new ArrayList<>();
 
-    ArrayList<Integer> bookedRooms =
-            new ArrayList<>();
+    RoomController roomController =
+            new RoomController();
 
-    HashMap<Integer, String> bookingRecords =
-            new HashMap<>();
-
-    int totalRevenue = 0;
-
+    PaymentService paymentService =
+            new PaymentService();
     public HotelGUI() {
 
-        setTitle("FINAL HOTEL MANAGEMENT SYSTEM");
+        setTitle("Advanced Hotel Management System");
 
-        setSize(1500, 900);
+        setSize(1600, 900);
 
         setLocationRelativeTo(null);
 
@@ -51,17 +58,22 @@ public class HotelGUI extends JFrame {
 
         setLayout(new BorderLayout());
 
-        // ================= HEADER =================
+        roomController
+                .getHotelService()
+                .loadBookingsFromDB();
 
-        JPanel header = new JPanel();
+        JPanel header =
+                new JPanel();
+
 
         header.setBackground(
                 new Color(44, 62, 80)
         );
 
-        JLabel title = new JLabel(
-                "HOTEL MANAGEMENT SYSTEM"
-        );
+        JLabel title =
+                new JLabel(
+                        "HOTEL MANAGEMENT SYSTEM"
+                );
 
         title.setForeground(Color.WHITE);
 
@@ -77,51 +89,35 @@ public class HotelGUI extends JFrame {
 
         add(header, BorderLayout.NORTH);
 
-        // ================= MAIN PANEL =================
+        JPanel mainPanel =
+                new JPanel(
+                        new GridLayout(
+                                1,
+                                2,
+                                15,
+                                15
+                        )
+                );
 
-        JPanel mainPanel = new JPanel(
-                new GridLayout(
-                        1,
-                        2,
-                        20,
-                        20
-                )
-        );
-
-        mainPanel.setBorder(
-                BorderFactory.createEmptyBorder(
-                        20,
-                        20,
-                        20,
-                        20
-                )
-        );
-
-        // ================= LEFT CONTAINER =================
-
-        JPanel leftContainer =
+        JPanel leftPanel =
                 new JPanel();
 
-        leftContainer.setLayout(
-                new BorderLayout(
-                        15,
-                        15
+        leftPanel.setLayout(
+                new BoxLayout(
+                        leftPanel,
+                        BoxLayout.Y_AXIS
                 )
         );
-
-        // ================= FORM PANEL =================
 
         JPanel formPanel =
-                new JPanel();
-
-        formPanel.setLayout(
-                new GridLayout(
-                        9,
-                        2,
-                        12,
-                        12
-                )
-        );
+                new JPanel(
+                        new GridLayout(
+                                7,
+                                2,
+                                15,
+                                15
+                        )
+                );
 
         Font labelFont =
                 new Font(
@@ -147,180 +143,37 @@ public class HotelGUI extends JFrame {
                 new JLabel("Check-Out Day:");
 
         JLabel roomLabel =
-                new JLabel("How Many Rooms:");
+                new JLabel("How Many Rooms?");
 
         nameLabel.setFont(labelFont);
         inLabel.setFont(labelFont);
         outLabel.setFont(labelFont);
         roomLabel.setFont(labelFont);
 
-        nameField = new JTextField();
-        checkInField = new JTextField();
-        checkOutField = new JTextField();
-        roomCountField = new JTextField();
+        nameField =
+                new JTextField();
+
+        checkInField =
+                new JTextField();
+
+        checkOutField =
+                new JTextField();
+
+        roomCountField =
+                new JTextField();
 
         JTextField[] fields = {
 
                 nameField,
-
                 checkInField,
-
                 checkOutField,
-
                 roomCountField
         };
 
         for (JTextField field : fields) {
 
             field.setFont(fieldFont);
-
-            field.setPreferredSize(
-                    new Dimension(
-                            300,
-                            45
-                    )
-            );
         }
-
-        // ================= ENTER NAVIGATION =================
-
-        nameField.addActionListener(e ->
-                checkInField.requestFocus());
-
-        checkInField.addActionListener(e ->
-                checkOutField.requestFocus());
-
-        checkOutField.addActionListener(e ->
-                roomCountField.requestFocus());
-
-        // ================= AUTO ROOM GENERATION =================
-
-        roomCountField.addActionListener(e -> {
-
-            try {
-
-                dynamicRoomPanel.removeAll();
-
-                roomTypeBoxes.clear();
-
-                int roomCount =
-                        Integer.parseInt(
-                                roomCountField
-                                        .getText()
-                                        .trim()
-                        );
-
-                if (roomCount < 1 ||
-                        roomCount > 20) {
-
-                    JOptionPane.showMessageDialog(
-                            this,
-                            "Room count must be 1-20"
-                    );
-
-                    return;
-                }
-
-                for (int i = 1;
-                     i <= roomCount;
-                     i++) {
-
-                    JPanel roomPanel =
-                            new JPanel(
-                                    new BorderLayout(
-                                            15,
-                                            15
-                                    )
-                            );
-
-                    roomPanel.setBorder(
-                            BorderFactory.createLineBorder(
-                                    Color.GRAY,
-                                    2
-                            )
-                    );
-
-                    roomPanel.setPreferredSize(
-                            new Dimension(
-                                    600,
-                                    80
-                            )
-                    );
-
-                    JLabel roomTypeLabel =
-                            new JLabel(
-                                    "Room "
-                                            + i
-                                            + " Type:"
-                            );
-
-                    roomTypeLabel.setFont(
-                            new Font(
-                                    "Arial",
-                                    Font.BOLD,
-                                    22
-                            )
-                    );
-
-                    JComboBox<String> combo =
-                            new JComboBox<>(
-                                    new String[]{
-
-                                            "Single Room - $50",
-
-                                            "Double Room - $100",
-
-                                            "Sweet Room - $150",
-
-                                            "Luxury Room - $300"
-                                    }
-                            );
-
-                    combo.setFont(
-                            new Font(
-                                    "Arial",
-                                    Font.PLAIN,
-                                    20
-                            )
-                    );
-
-                    combo.setPreferredSize(
-                            new Dimension(
-                                    350,
-                                    50
-                            )
-                    );
-
-                    roomTypeBoxes.add(combo);
-
-                    roomPanel.add(
-                            roomTypeLabel,
-                            BorderLayout.WEST
-                    );
-
-                    roomPanel.add(
-                            combo,
-                            BorderLayout.CENTER
-                    );
-
-                    dynamicRoomPanel.add(roomPanel);
-                }
-
-                dynamicRoomPanel.revalidate();
-
-                dynamicRoomPanel.repaint();
-            }
-
-            catch (Exception ex) {
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Enter valid room count"
-                );
-            }
-        });
-
-        // ================= ADD FIELDS =================
 
         formPanel.add(nameLabel);
         formPanel.add(nameField);
@@ -334,8 +187,6 @@ public class HotelGUI extends JFrame {
         formPanel.add(roomLabel);
         formPanel.add(roomCountField);
 
-        // ================= ACTIVITIES =================
-
         poolBox =
                 new JCheckBox(
                         "Swimming Pool - $20"
@@ -348,30 +199,37 @@ public class HotelGUI extends JFrame {
 
         breakfastBox =
                 new JCheckBox(
-                        "Breakfast - $10"
+                        "Breakfast Buffet - $10"
                 );
 
         lunchBox =
                 new JCheckBox(
-                        "Lunch - $20"
+                        "Lunch Buffet - $20"
                 );
 
         dinnerBox =
                 new JCheckBox(
-                        "Dinner - $25"
+                        "Dinner Buffet - $25"
+                );
+        indoorSportsBox =
+                new JCheckBox(
+                        "Indoor Sports - $50"
+                );
+
+        outdoorSportsBox =
+                new JCheckBox(
+                        "Outdoor Sports - $40"
                 );
 
         JCheckBox[] boxes = {
 
                 poolBox,
-
                 gymBox,
-
                 breakfastBox,
-
                 lunchBox,
-
-                dinnerBox
+                dinnerBox,
+                indoorSportsBox,
+                outdoorSportsBox
         };
 
         for (JCheckBox box : boxes) {
@@ -379,47 +237,40 @@ public class HotelGUI extends JFrame {
             box.setFont(
                     new Font(
                             "Arial",
-                            Font.PLAIN,
+                            Font.BOLD,
                             18
                     )
             );
-
-            formPanel.add(box);
         }
 
-        leftContainer.add(
-                formPanel,
-                BorderLayout.NORTH
-        );
+        formPanel.add(poolBox);
+        formPanel.add(gymBox);
 
-        // ================= ROOM PANEL =================
+        formPanel.add(breakfastBox);
+        formPanel.add(lunchBox);
+
+        formPanel.add(dinnerBox);
+        formPanel.add(indoorSportsBox);
+
+        formPanel.add(outdoorSportsBox);
+
+        leftPanel.add(formPanel);
 
         dynamicRoomPanel =
                 new JPanel();
 
         dynamicRoomPanel.setLayout(
                 new GridLayout(
-                        10,
-                        1,
-                        20,
-                        20
+                        0,
+                        2,
+                        15,
+                        15
                 )
         );
 
         dynamicRoomPanel.setBorder(
                 BorderFactory.createTitledBorder(
-                        BorderFactory.createLineBorder(
-                                Color.GRAY,
-                                2
-                        ),
-                        "Room Type Selection",
-                        0,
-                        0,
-                        new Font(
-                                "Arial",
-                                Font.BOLD,
-                                26
-                        )
+                        "Room Type Selection"
                 )
         );
 
@@ -431,18 +282,27 @@ public class HotelGUI extends JFrame {
         roomScroll.setPreferredSize(
                 new Dimension(
                         700,
-                        500
+                        320
                 )
         );
 
-        leftContainer.add(
-                roomScroll,
-                BorderLayout.CENTER
+        leftPanel.add(roomScroll);
+
+        nameField.addActionListener(e ->
+                checkInField.requestFocus()
         );
 
-        mainPanel.add(leftContainer);
+        checkInField.addActionListener(e ->
+                checkOutField.requestFocus()
+        );
 
-        // ================= ROOM STATUS =================
+        checkOutField.addActionListener(e ->
+                roomCountField.requestFocus()
+        );
+
+        roomCountField.addActionListener(e ->
+                generateRoomSelection()
+        );
 
         roomStatusArea =
                 new JTextArea();
@@ -457,24 +317,26 @@ public class HotelGUI extends JFrame {
                 )
         );
 
-        updateRoomStatus();
+        roomStatusArea.setText(
+                "Click SHOW ROOMS button"
+        );
 
-        JScrollPane scrollPane =
+        JScrollPane rightScroll =
                 new JScrollPane(
                         roomStatusArea
                 );
 
-        mainPanel.add(scrollPane);
+        mainPanel.add(leftPanel);
+
+        mainPanel.add(rightScroll);
 
         add(mainPanel, BorderLayout.CENTER);
-
-        // ================= BUTTON PANEL =================
 
         JPanel buttonPanel =
                 new JPanel(
                         new GridLayout(
                                 1,
-                                5,
+                                6,
                                 15,
                                 15
                         )
@@ -492,19 +354,19 @@ public class HotelGUI extends JFrame {
         searchButton =
                 new JButton("SEARCH ROOM");
 
+        cancelButton =
+                new JButton("CANCEL ROOM");
+
         exitButton =
                 new JButton("EXIT");
 
         JButton[] buttons = {
 
                 bookButton,
-
                 showRoomsButton,
-
                 revenueButton,
-
                 searchButton,
-
+                cancelButton,
                 exitButton
         };
 
@@ -514,20 +376,11 @@ public class HotelGUI extends JFrame {
                     new Font(
                             "Arial",
                             Font.BOLD,
-                            22
+                            20
                     )
             );
 
             btn.setForeground(Color.WHITE);
-
-            btn.setFocusPainted(false);
-
-            btn.setPreferredSize(
-                    new Dimension(
-                            200,
-                            60
-                    )
-            );
         }
 
         bookButton.setBackground(
@@ -546,23 +399,20 @@ public class HotelGUI extends JFrame {
                 new Color(52, 152, 219)
         );
 
+        cancelButton.setBackground(
+                new Color(192, 57, 43)
+        );
+
         exitButton.setBackground(
                 new Color(231, 76, 60)
         );
 
-        buttonPanel.add(bookButton);
+        for (JButton btn : buttons) {
 
-        buttonPanel.add(showRoomsButton);
-
-        buttonPanel.add(revenueButton);
-
-        buttonPanel.add(searchButton);
-
-        buttonPanel.add(exitButton);
+            buttonPanel.add(btn);
+        }
 
         add(buttonPanel, BorderLayout.SOUTH);
-
-        // ================= BOOK BUTTON =================
 
         bookButton.addActionListener(e -> {
 
@@ -571,11 +421,11 @@ public class HotelGUI extends JFrame {
                 String name =
                         nameField.getText().trim();
 
-                if (!name.matches("[a-zA-Z ]+")) {
+                if (name.isEmpty()) {
 
                     JOptionPane.showMessageDialog(
                             this,
-                            "Invalid customer name"
+                            "Enter customer name"
                     );
 
                     return;
@@ -583,28 +433,245 @@ public class HotelGUI extends JFrame {
 
                 int inDay =
                         Integer.parseInt(
-                                checkInField.getText().trim()
+                                checkInField.getText()
                         );
 
                 int outDay =
                         Integer.parseInt(
-                                checkOutField.getText().trim()
+                                checkOutField.getText()
                         );
 
-                int totalDays =
-                        outDay - inDay;
-
-                if (totalDays <= 0) {
+                if (inDay <= 0 || outDay <= 0) {
 
                     JOptionPane.showMessageDialog(
                             this,
-                            "Invalid stay duration"
+                            "Days must be greater than 0"
                     );
 
                     return;
                 }
 
-                int total = 0;
+                if (outDay <= inDay) {
+
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Check-Out must be greater than Check-In"
+                    );
+
+                    return;
+                }
+
+                if (roomTypeBoxes.isEmpty()) {
+
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Generate rooms first"
+                    );
+
+                    return;
+                }
+
+                LocalDate in =
+                        LocalDate.of(
+                                2025,
+                                1,
+                                inDay
+                        );
+
+                LocalDate out =
+                        LocalDate.of(
+                                2025,
+                                1,
+                                outDay
+                        );
+
+                List<Room> selectedRooms =
+                        new ArrayList<>();
+
+                List<Service> selectedServices =
+                        new ArrayList<>();
+
+                for (int i = 0;
+                     i < roomTypeBoxes.size();
+                     i++) {
+
+                    String roomType =
+                            roomTypeBoxes
+                                    .get(i)
+                                    .getSelectedItem()
+                                    .toString();
+
+                    String cleanType =
+                            roomType
+                                    .replace(" Room", "")
+                                    .replace(" - $50", "")
+                                    .replace(" - $100", "")
+                                    .replace(" - $150", "")
+                                    .replace(" - $300", "");
+
+                    int autoRoomId = -1;
+
+                    for (int roomCheck = 1;
+                         roomCheck <= 20;
+                         roomCheck++) {
+
+                        boolean alreadySelected = false;
+
+                        for (Room selected : selectedRooms) {
+
+                            if (selected.id == roomCheck) {
+
+                                alreadySelected = true;
+                                break;
+                            }
+                        }
+
+                        if (alreadySelected) {
+
+                            continue;
+                        }
+
+                        boolean available =
+
+                                roomController
+                                        .getHotelService()
+                                        .isAvailable(
+                                                roomCheck,
+                                                in,
+                                                out
+                                        );
+
+                        if (available) {
+
+                            autoRoomId = roomCheck;
+                            break;
+                        }
+                    }
+
+                    if (autoRoomId == -1) {
+
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "No Rooms Available!"
+                        );
+
+                        return;
+                    }
+
+                    Room room =
+                            new Room(
+                                    autoRoomId,
+                                    cleanType
+                            );
+
+                    selectedRooms.add(room);
+                }
+
+                if (poolBox.isSelected()) {
+
+                    selectedServices.add(
+                            new Service(
+                                    "Swimming Pool",
+                                    20,
+                                    false
+                            )
+                    );
+                }
+
+                if (gymBox.isSelected()) {
+
+                    selectedServices.add(
+                            new Service(
+                                    "Gym Access",
+                                    15,
+                                    false
+                            )
+                    );
+                }
+
+                if (breakfastBox.isSelected()) {
+
+                    selectedServices.add(
+                            new Service(
+                                    "Breakfast Buffet",
+                                    10,
+                                    false
+                            )
+                    );
+                }
+
+                if (lunchBox.isSelected()) {
+
+                    selectedServices.add(
+                            new Service(
+                                    "Lunch Buffet",
+                                    20,
+                                    false
+                            )
+                    );
+                }
+
+                if (indoorSportsBox.isSelected()) {
+
+                    selectedServices.add(
+
+                            new Service(
+                                    "Indoor Sports",
+                                    50,
+                                    false
+                            )
+                    );
+                }
+
+                if (outdoorSportsBox.isSelected()) {
+
+                    selectedServices.add(
+
+                            new Service(
+                                    "Outdoor Sports",
+                                    40,
+                                    false
+                            )
+                    );
+                }
+
+                if (dinnerBox.isSelected()) {
+
+                    selectedServices.add(
+                            new Service(
+                                    "Dinner Buffet",
+                                    25,
+                                    false
+                            )
+                    );
+                }
+
+                roomController
+                        .getHotelService()
+                        .guiBookRoom(
+                                name,
+                                in,
+                                out,
+                                selectedRooms,
+                                selectedServices
+                        );
+
+                Booking invoiceBooking =
+                        new Booking(
+                                name,
+                                in,
+                                out
+                        );
+
+                for (Room r : selectedRooms) {
+
+                    invoiceBooking.addRoom(r);
+                }
+
+                for (Service s : selectedServices) {
+
+                    invoiceBooking.addService(s);
+                }
 
                 StringBuilder invoice =
                         new StringBuilder();
@@ -614,83 +681,49 @@ public class HotelGUI extends JFrame {
                 );
 
                 invoice.append(
-                        "Customer : "
+                        "Customer Name : "
                                 + name
-                                + "\n\n"
+                                + "\n"
                 );
+
 
                 invoice.append(
-                        "Stay Days : "
-                                + totalDays
-                                + "\n\n"
+                        "Stay : "
+                                + invoiceBooking.in
+                                + " to "
+                                + invoiceBooking.out
+                                + "\n"
                 );
 
-                for (int i = 0;
-                     i < roomTypeBoxes.size();
-                     i++) {
+                long days =
+                        invoiceBooking.days();
 
-                    int roomId = i + 1;
+                invoice.append(
+                        "\n=========== ROOM DETAILS ===========\n\n"
+                );
 
-                    String roomType =
-                            roomTypeBoxes
-                                    .get(i)
-                                    .getSelectedItem()
-                                    .toString();
+                double roomTotal = 0;
 
-                    int price = 0;
+                for (Room r : selectedRooms) {
 
-                    if (roomType.contains("Single"))
-                        price = 50;
+                    double roomCost =
+                            r.price * days;
 
-                    else if (roomType.contains("Double"))
-                        price = 100;
-
-                    else if (roomType.contains("Sweet"))
-                        price = 150;
-
-                    else if (roomType.contains("Luxury"))
-                        price = 300;
-
-                    int roomTotal =
-                            price * totalDays;
-
-                    total += roomTotal;
-
-                    bookedRooms.add(roomId);
+                    roomTotal += roomCost;
 
                     invoice.append(
                             "Room ID : "
-                                    + roomId
-                                    + "\n"
-                    );
-
-                    invoice.append(
-                            "Room Type : "
-                                    + roomType
-                                    + "\n"
-                    );
-
-                    invoice.append(
-                            "$"
-                                    + price
+                                    + r.id
+                                    + "\nRoom Type : "
+                                    + r.type
+                                    + "\nPrice : $"
+                                    + r.price
                                     + " × "
-                                    + totalDays
-                                    + " Days = $"
-                                    + roomTotal
+                                    + days
+                                    + " Days"
+                                    + "\nRoom Total : $"
+                                    + roomCost
                                     + "\n\n"
-                    );
-
-                    bookingRecords.put(
-                            roomId,
-
-                            "Customer : "
-                                    + name
-                                    + "\n"
-                                    + "Room Type : "
-                                    + roomType
-                                    + "\n"
-                                    + "Stay Days : "
-                                    + totalDays
                     );
                 }
 
@@ -698,70 +731,96 @@ public class HotelGUI extends JFrame {
                         "=========== ACTIVITIES ===========\n\n"
                 );
 
-                if (poolBox.isSelected()) {
+                double serviceTotal = 0;
 
-                    total += 20;
+                if (selectedServices.isEmpty()) {
 
                     invoice.append(
-                            "Swimming Pool = $20\n"
+                            "No Activities Selected\n"
                     );
                 }
 
-                if (gymBox.isSelected()) {
+                else {
 
-                    total += 15;
+                    for (Service s : selectedServices) {
 
-                    invoice.append(
-                            "Gym Access = $15\n"
-                    );
-                }
+                        invoice.append(
+                                s.name
+                                        + " : $"
+                                        + s.price
+                                        + "\n"
+                        );
 
-                if (breakfastBox.isSelected()) {
-
-                    total += 10;
-
-                    invoice.append(
-                            "Breakfast = $10\n"
-                    );
-                }
-
-                if (lunchBox.isSelected()) {
-
-                    total += 20;
-
-                    invoice.append(
-                            "Lunch = $20\n"
-                    );
-                }
-
-                if (dinnerBox.isSelected()) {
-
-                    total += 25;
-
-                    invoice.append(
-                            "Dinner = $25\n"
-                    );
+                        serviceTotal += s.price;
+                    }
                 }
 
                 invoice.append(
-                        "\n===================================\n"
+                        "\n=========== COMPLIMENTARY ===========\n\n"
                 );
 
                 invoice.append(
-                        "GRAND TOTAL = $"
-                                + total
+                        "Welcome Drinks : FREE\n"
                 );
 
-                totalRevenue += total;
+                invoice.append(
+                        "Free WiFi : FREE\n"
+                );
 
-                updateRoomStatus();
+                invoice.append(
+                        "Free Parking : FREE\n"
+                );
 
-                JTextArea area =
+                invoice.append(
+                        "Room Cleaning : FREE\n"
+                );
+
+                invoice.append(
+                        "Swimming Towels : FREE\n"
+                );
+
+                double grandTotal =
+                        roomTotal + serviceTotal;
+
+                invoice.append(
+                        "\n=========== BILL SUMMARY ===========\n\n"
+                );
+
+                invoice.append(
+                        "Room Charges : $"
+                                + roomTotal
+                                + "\n"
+                );
+
+                invoice.append(
+                        "Activities Charges : $"
+                                + serviceTotal
+                                + "\n"
+                );
+
+                invoice.append(
+                        "Grand Total : $"
+                                + grandTotal
+                                + "\n"
+                );
+
+                invoice.append(
+                        "\n===================================="
+                );
+                JTextArea invoiceArea =
                         new JTextArea(
                                 invoice.toString()
                         );
 
-                area.setFont(
+                invoiceArea.setEditable(false);
+
+                invoiceArea.setLineWrap(true);
+
+                invoiceArea.setWrapStyleWord(true);
+
+                invoiceArea.setCaretPosition(0);
+
+                invoiceArea.setFont(
                         new Font(
                                 "Monospaced",
                                 Font.BOLD,
@@ -769,13 +828,37 @@ public class HotelGUI extends JFrame {
                         )
                 );
 
-                area.setEditable(false);
+                JScrollPane invoiceScroll =
+                        new JScrollPane(
+                                invoiceArea
+                        );
+
+                invoiceScroll.setPreferredSize(
+                        new Dimension(
+                                700,
+                                700
+                        )
+                );
+
+                invoiceScroll.setVerticalScrollBarPolicy(
+                        JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
+                );
 
                 JOptionPane.showMessageDialog(
+
                         this,
-                        new JScrollPane(area),
-                        "FINAL INVOICE",
+
+                        invoiceScroll,
+
+                        "FINAL HOTEL INVOICE",
+
                         JOptionPane.INFORMATION_MESSAGE
+                );
+                roomStatusArea.setText(
+                        roomController.getRoomStatus(
+                                in,
+                                out
+                        )
                 );
             }
 
@@ -783,89 +866,174 @@ public class HotelGUI extends JFrame {
 
                 JOptionPane.showMessageDialog(
                         this,
-                        "Enter valid input values"
+                        ex.getMessage()
                 );
             }
         });
 
-        // ================= SHOW ROOMS =================
-
         showRoomsButton.addActionListener(e -> {
 
-            updateRoomStatus();
+            try {
 
-            JOptionPane.showMessageDialog(
-                    this,
-                    new JScrollPane(roomStatusArea),
-                    "ROOM STATUS",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+                int inDay =
+                        Integer.parseInt(
+                                checkInField.getText()
+                        );
+
+                int outDay =
+                        Integer.parseInt(
+                                checkOutField.getText()
+                        );
+
+                LocalDate in =
+                        LocalDate.of(
+                                2025,
+                                1,
+                                inDay
+                        );
+
+                LocalDate out =
+                        LocalDate.of(
+                                2025,
+                                1,
+                                outDay
+                        );
+
+                roomStatusArea.setText(
+                        roomController.getRoomStatus(
+                                in,
+                                out
+                        )
+                );
+            }
+
+            catch (Exception ex) {
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Enter valid dates first"
+                );
+            }
         });
-
-        // ================= REVENUE =================
 
         revenueButton.addActionListener(e -> {
 
             JOptionPane.showMessageDialog(
                     this,
-                    "Total Hotel Revenue = $"
-                            + totalRevenue
+                    "Total Revenue = $"
+                            + roomController
+                            .getHotelService()
+                            .getTotalRevenue()
             );
         });
 
-        // ================= SEARCH ROOM =================
-
         searchButton.addActionListener(e -> {
+
+            String input =
+                    JOptionPane.showInputDialog(
+                            this,
+                            "Enter Room ID:"
+                    );
+
+            if (input == null || input.isEmpty()) {
+                return;
+            }
+
+            try {
+
+                int roomId =
+                        Integer.parseInt(input);
+
+                String result =
+                        roomController.searchRoom(
+                                roomId
+                        );
+
+                JTextArea area =
+                        new JTextArea(
+                                result
+                        );
+
+                area.setEditable(false);
+
+                area.setFont(
+
+                        new Font(
+                                "Monospaced",
+                                Font.BOLD,
+                                18
+                        )
+                );
+
+                area.setLineWrap(true);
+
+                area.setWrapStyleWord(true);
+
+                JScrollPane pane =
+                        new JScrollPane(area);
+
+                pane.setPreferredSize(
+
+                        new Dimension(
+                                700,
+                                600
+                        )
+                );
+
+                JOptionPane.showMessageDialog(
+
+                        this,
+
+                        pane,
+
+                        "ROOM DETAILS",
+
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+
+            }
+
+            catch (Exception ex) {
+
+                JOptionPane.showMessageDialog(
+
+                        this,
+
+                        "Invalid Room ID"
+                );
+            }
+        });
+
+        cancelButton.addActionListener(e -> {
 
             try {
 
                 String input =
                         JOptionPane.showInputDialog(
                                 this,
-                                "Enter Room ID:"
+                                "Enter Room ID To Cancel:"
                         );
 
-                if (input == null) {
-
+                if (input == null)
                     return;
-                }
 
                 int roomId =
                         Integer.parseInt(input);
 
-                if (bookingRecords.containsKey(roomId)) {
+                roomController.cancelRoom(
+                        roomId
+                );
 
-                    JTextArea area =
-                            new JTextArea(
-                                    bookingRecords.get(roomId)
-                            );
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Room Cancelled Successfully!"
+                );
 
-                    area.setFont(
-                            new Font(
-                                    "Arial",
-                                    Font.BOLD,
-                                    18
-                            )
-                    );
-
-                    area.setEditable(false);
-
-                    JOptionPane.showMessageDialog(
-                            this,
-                            new JScrollPane(area),
-                            "ROOM RECORD",
-                            JOptionPane.INFORMATION_MESSAGE
-                    );
-                }
-
-                else {
-
-                    JOptionPane.showMessageDialog(
-                            this,
-                            "No booking found for Room ID "
-                                    + roomId
-                    );
-                }
+                roomStatusArea.setText(
+                        "Room ID "
+                                + roomId
+                                + " cancelled."
+                );
             }
 
             catch (Exception ex) {
@@ -877,8 +1045,6 @@ public class HotelGUI extends JFrame {
             }
         });
 
-        // ================= EXIT =================
-
         exitButton.addActionListener(e -> {
 
             System.exit(0);
@@ -887,40 +1053,104 @@ public class HotelGUI extends JFrame {
         setVisible(true);
     }
 
-    // ================= ROOM STATUS =================
+    private void generateRoomSelection() {
 
-    public void updateRoomStatus() {
+        try {
 
-        StringBuilder sb =
-                new StringBuilder();
+            dynamicRoomPanel.removeAll();
 
-        sb.append(
-                "=========== ROOM STATUS ===========\n\n"
-        );
+            roomTypeBoxes.clear();
 
-        for (int i = 1; i <= 20; i++) {
+            int count =
+                    Integer.parseInt(
+                            roomCountField.getText()
+                    );
 
-            if (bookedRooms.contains(i)) {
+            if (count <= 0 || count > 20) {
 
-                sb.append(
-                        "Room ID "
-                                + i
-                                + " → BOOKED\n"
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Room count must be 1-20"
                 );
+
+                return;
             }
 
-            else {
+            Font labelFont =
+                    new Font(
+                            "Arial",
+                            Font.BOLD,
+                            20
+                    );
 
-                sb.append(
-                        "Room ID "
-                                + i
-                                + " → AVAILABLE\n"
-                );
+            Font comboFont =
+                    new Font(
+                            "Arial",
+                            Font.PLAIN,
+                            18
+                    );
+
+            for (int i = 1; i <= count; i++) {
+
+                JLabel label =
+                        new JLabel(
+                                "Room "
+                                        + i
+                                        + " Type:"
+                        );
+
+                label.setFont(labelFont);
+
+                JComboBox<String> combo =
+                        new JComboBox<>(
+
+                                new String[]{
+
+                                        "Single Room - $50",
+
+                                        "Double Room - $100",
+
+                                        "Sweet Room - $150",
+
+                                        "Luxury Room - $300"
+                                }
+                        );
+
+                combo.setFont(comboFont);
+
+                roomTypeBoxes.add(combo);
+
+                dynamicRoomPanel.add(label);
+
+                dynamicRoomPanel.add(combo);
+            }
+
+            dynamicRoomPanel.revalidate();
+
+            dynamicRoomPanel.repaint();
+
+            if (!roomTypeBoxes.isEmpty()) {
+
+                roomTypeBoxes
+                        .get(0)
+                        .requestFocus();
             }
         }
 
-        roomStatusArea.setText(
-                sb.toString()
-        );
+        catch (Exception ex) {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Invalid room count"
+            );
+        }
+    }
+
+    public static void main(String[] args) {
+
+        SwingUtilities.invokeLater(() -> {
+
+            new HotelGUI();
+        });
     }
 }

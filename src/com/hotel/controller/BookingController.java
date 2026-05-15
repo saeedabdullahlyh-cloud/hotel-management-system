@@ -1,96 +1,64 @@
 package com.hotel.controller;
 
-import com.hotel.service.Hotel;
 import com.hotel.model.Payment;
+import com.hotel.service.Hotel;
 
 import java.time.LocalDate;
 import java.util.Scanner;
 
 public class BookingController {
 
-    private Hotel hotel;
+    private Hotel hotelService;
 
-    public BookingController(Hotel hotel) {
+    public BookingController(Hotel hotelService) {
 
-        this.hotel = hotel;
+        this.hotelService = hotelService;
     }
 
     // ================= BOOK ROOM =================
 
-    public void bookRoom(String name,
-                         String roomType,
-                         int checkInDay,
-                         int checkOutDay) {
+    public void bookRoom(
+            String name,
+            LocalDate in,
+            LocalDate out,
+            Payment payment,
+            Scanner sc
+    ) {
 
-        System.out.println("\n===== BOOKING DETAILS =====");
-
-        System.out.println("Customer Name: " + name);
-
-        System.out.println("Room Type: " + roomType);
-
-        System.out.println("Check-In Day: " + checkInDay);
-
-        System.out.println("Check-Out Day: " + checkOutDay);
-
-        int totalDays =
-                checkOutDay - checkInDay;
-
-        int pricePerDay = 0;
-
-        // ================= ROOM PRICES =================
-
-        if (roomType.equals("Single")) {
-
-            pricePerDay = 2000;
-        }
-
-        else if (roomType.equals("Double")) {
-
-            pricePerDay = 4000;
-        }
-
-        else if (roomType.equals("Sweet")) {
-
-            pricePerDay = 7000;
-        }
-
-        else if (roomType.equals("Luxury")) {
-
-            pricePerDay = 10000;
-        }
-
-        int total =
-                totalDays * pricePerDay;
-
-        System.out.println("Total Days: " + totalDays);
-
-        System.out.println("Total Price: " + total);
-
-        System.out.println("==============================");
-    }
-
-    // ================= OLD METHOD =================
-
-    public void bookRoom(String name,
-                         LocalDate in,
-                         LocalDate out,
-                         Payment payment,
-                         Scanner sc) {
-
-        hotel.book(name, in, out, payment, sc);
+        hotelService.book(
+                name,
+                in,
+                out,
+                payment,
+                sc
+        );
     }
 
     // ================= CANCEL =================
 
     public void cancelBooking(int id) {
 
-        hotel.cancel(id);
+        hotelService.cancel(id);
     }
 
     // ================= SEARCH =================
 
     public void searchBooking(int roomId) {
 
-        hotel.searchByRoom(roomId);
+        hotelService.searchByRoom(roomId);
+    }
+
+    // ================= SAVE BOOKINGS =================
+
+    public void saveBookings() {
+
+        hotelService.saveToFile();
+    }
+
+    // ================= LOAD BOOKINGS =================
+
+    public void loadBookings() {
+
+        hotelService.loadBookingsFromDB();
     }
 }
