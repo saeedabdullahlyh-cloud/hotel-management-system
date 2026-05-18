@@ -1,5 +1,5 @@
 package com.hotel.service;
-
+import java.sql.DriverManager;
 import com.hotel.database.DatabaseConnection;
 import com.hotel.model.Booking;
 import com.hotel.model.Payment;
@@ -25,6 +25,16 @@ public class Hotel {
             new ArrayList<>();
 
     private double totalRevenue = 0;
+
+
+// ================= CONSTRUCTOR =================
+
+    public Hotel() {
+
+        loadBookingsFromDB();
+
+        loadRevenue();
+    }
 
     // ================= ADD ROOM =================
 
@@ -193,7 +203,15 @@ public class Hotel {
 
     public void book(
 
-            String name,
+            String guestName,
+
+            String cnic,
+
+            String phone,
+
+            String email,
+
+            String address,
 
             LocalDate in,
 
@@ -202,12 +220,25 @@ public class Hotel {
             Payment payment,
 
             Scanner sc
-    ) {
+    ){
+
 
         Booking b =
+
                 new Booking(
-                        name,
+
+                        guestName,
+
+                        cnic,
+
+                        phone,
+
+                        email,
+
+                        address,
+
                         in,
+
                         out
                 );
 
@@ -516,7 +547,42 @@ public class Hotel {
                         + totalRevenue
         );
     }
+//--------------load revenue----------------------------
+public void loadRevenue() {
 
+    try {
+
+        java.io.File file =
+                new java.io.File(
+                        "revenue.txt"
+                );
+
+        if(!file.exists()) {
+
+            return;
+        }
+
+        Scanner sc =
+                new Scanner(file);
+
+        if(sc.hasNextDouble()) {
+
+            totalRevenue =
+                    sc.nextDouble();
+        }
+
+        sc.close();
+
+        System.out.println(
+                "Revenue loaded!"
+        );
+    }
+
+    catch (Exception e) {
+
+        e.printStackTrace();
+    }
+}
     // ================= SEARCH ROOM =================
 
     public String searchByRoom(int roomId) {
@@ -551,7 +617,25 @@ public class Hotel {
                         rs.getString(
                                 "guest_name"
                         );
+                String cnic =
+                        rs.getString(
+                                "cnic"
+                        );
 
+                String phone =
+                        rs.getString(
+                                "phone"
+                        );
+
+                String email =
+                        rs.getString(
+                                "email"
+                        );
+
+                String address =
+                        rs.getString(
+                                "address"
+                        );
                 String roomType =
                         rs.getString(
                                 "room_type"
@@ -591,7 +675,29 @@ public class Hotel {
                                 + guestName
                                 + "\n"
                 );
+                sb.append(
+                        "CNIC : "
+                                + cnic
+                                + "\n"
+                );
 
+                sb.append(
+                        "Phone : "
+                                + phone
+                                + "\n"
+                );
+
+                sb.append(
+                        "Email : "
+                                + email
+                                + "\n"
+                );
+
+                sb.append(
+                        "Address : "
+                                + address
+                                + "\n\n"
+                );
                 sb.append(
                         "Room ID : "
                                 + roomId
@@ -766,9 +872,8 @@ public class Hotel {
     }
 
     // ================= DATABASE SAVE =================
-
     public void saveBookingToDB(
-            Booking b
+            Booking booking
     ) {
 
         try {
@@ -776,62 +881,92 @@ public class Hotel {
             Connection con =
                     DatabaseConnection
                             .getConnection();
+
             String query =
 
                     "INSERT INTO bookings " +
 
-                            "(room_id, guest_name, room_type, check_in, check_out, room_price, total_days, grand_total) " +
+                            "(guest_name, cnic, phone, email, address, room_id, room_type, check_in, check_out, room_price, total_days, grand_total) " +
 
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement ps =
                     con.prepareStatement(query);
 
-            for (Room r : b.rooms) {
+            for(Room room : booking.rooms) {
 
-                long totalDays =
-                        b.days();
+                ps.setString(
+                        1,
+                        booking.guestName
+                );
 
-                double grandTotal =
-                        (r.price * totalDays);
+                ps.setString(
+                        2,
+                        booking.cnic
+                );
 
-                ps.setInt(1, r.id);
+                ps.setString(
+                        3,
+                        booking.phone
+                );
 
-                ps.setString(2, b.guestName);
-
-                ps.setString(3, r.type);
-
-                ps.setDate(
+                ps.setString(
                         4,
-                        java.sql.Date.valueOf(b.in)
+                        booking.email
                 );
 
-                ps.setDate(
+                ps.setString(
                         5,
-                        java.sql.Date.valueOf(b.out)
+                        booking.address
                 );
-
-                ps.setDouble(6, r.price);
 
                 ps.setInt(
+                        6,
+                        room.id
+                );
+
+                ps.setString(
                         7,
-                        (int) totalDays
+                        room.type
+                );
+
+                ps.setDate(
+                        8,
+                        java.sql.Date.valueOf(
+                                booking.in
+                        )
+                );
+
+                ps.setDate(
+                        9,
+                        java.sql.Date.valueOf(
+                                booking.out
+                        )
+                );
+                ps.setDouble(
+                        10,
+                        room.price
+                );
+
+                ps.setInt(
+                        11,
+                        (int) booking.days()
                 );
 
                 ps.setDouble(
-                        8,
-                        grandTotal
+                        12,
+                        booking.total()
                 );
+
                 ps.executeUpdate();
             }
 
-            System.out.println(
-                    "Booking saved to DB!"
-            );
+            con.close();
+
         }
 
         catch (Exception e) {
 
-            e.printStackTrace();
+            System.out.println(e);
         }
     }
 
@@ -871,7 +1006,7 @@ public class Hotel {
     // ================= DATABASE LOAD =================
 
     public void loadBookingsFromDB() {
-
+        bookings.clear();
         try {
 
             Connection con =
@@ -893,7 +1028,25 @@ public class Hotel {
                         rs.getString(
                                 "guest_name"
                         );
+                String cnic =
+                        rs.getString(
+                                "cnic"
+                        );
 
+                String phone =
+                        rs.getString(
+                                "phone"
+                        );
+
+                String email =
+                        rs.getString(
+                                "email"
+                        );
+
+                String address =
+                        rs.getString(
+                                "address"
+                        );
                 int roomId =
                         rs.getInt(
                                 "room_id"
@@ -916,11 +1069,21 @@ public class Hotel {
 
                 Booking b =
                         new Booking(
+
                                 guestName,
+
+                                cnic,
+
+                                phone,
+
+                                email,
+
+                                address,
+
                                 in,
+
                                 out
                         );
-
                 Room r =
                         new Room(
                                 roomId,
@@ -968,6 +1131,14 @@ public class Hotel {
 
             String customerName,
 
+            String cnic,
+
+            String phone,
+
+            String email,
+
+            String address,
+
             LocalDate in,
 
             LocalDate out,
@@ -979,11 +1150,21 @@ public class Hotel {
 
         Booking booking =
                 new Booking(
+
                         customerName,
+
+                        cnic,
+
+                        phone,
+
+                        email,
+
+                        address,
+
                         in,
+
                         out
                 );
-
         // ================= ADD ROOMS =================
 
         for(Room r : selectedRooms) {
@@ -1067,6 +1248,9 @@ public class Hotel {
         saveRevenue();
     }
 
+    public double getRevenue() {
 
+        return totalRevenue;
+    }
 
 }

@@ -1,17 +1,11 @@
 package com.hotel;
 
-import com.hotel.view.HotelGUI;
-
-import javax.swing.SwingUtilities;
+import com.hotel.view.LoginGUI;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        SwingUtilities.invokeLater(() -> {
-
-            new HotelGUI();
-
-        });
+        new LoginGUI().setVisible(true);
     }
 }

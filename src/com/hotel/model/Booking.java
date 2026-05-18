@@ -11,6 +11,13 @@ public class Booking {
     public int id;
 
     public String guestName;
+    public String cnic;
+
+    public String phone;
+
+    public String email;
+
+    public String address;
 
     public List<Room> rooms = new ArrayList<>();
 
@@ -18,19 +25,39 @@ public class Booking {
 
     public LocalDate in, out;
 
-    public Booking(String guestName,
-                   LocalDate in,
-                   LocalDate out) {
+    public Booking(
+
+            String guestName,
+
+            String cnic,
+
+            String phone,
+
+            String email,
+
+            String address,
+
+            LocalDate in,
+
+            LocalDate out
+    ) {
 
         this.id = counter++;
 
         this.guestName = guestName;
 
+        this.cnic = cnic;
+
+        this.phone = phone;
+
+        this.email = email;
+
+        this.address = address;
+
         this.in = in;
 
         this.out = out;
     }
-
     public long days() {
 
         return out.toEpochDay()

@@ -17,14 +17,33 @@ public class RoomController {
 
             String customerName,
 
+            String cnic,
+
+            String phone,
+
+            String email,
+
+            String address,
+
             LocalDate in,
 
             LocalDate out
     ) {
 
         return new Booking(
+
                 customerName,
+
+                cnic,
+
+                phone,
+
+                email,
+
+                address,
+
                 in,
+
                 out
         );
     }

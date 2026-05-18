@@ -1,5 +1,4 @@
 package com.hotel.view;
-
 import com.hotel.controller.RoomController;
 import com.hotel.model.Booking;
 import com.hotel.model.Room;
@@ -11,14 +10,15 @@ import java.awt.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
 public class HotelGUI extends JFrame {
-
     JTextField nameField;
     JTextField checkInField;
     JTextField checkOutField;
     JTextField roomCountField;
-
+    JTextField cnicField;
+    JTextField phoneField;
+    JTextField emailField;
+    JTextField addressField;
     JCheckBox poolBox;
     JCheckBox gymBox;
     JCheckBox breakfastBox;
@@ -26,7 +26,6 @@ public class HotelGUI extends JFrame {
     JCheckBox dinnerBox;
     JCheckBox indoorSportsBox;
     JCheckBox outdoorSportsBox;
-
     JButton bookButton;
     JButton showRoomsButton;
     JButton revenueButton;
@@ -177,7 +176,67 @@ public class HotelGUI extends JFrame {
 
         formPanel.add(nameLabel);
         formPanel.add(nameField);
+        JLabel cnicLabel =
+                new JLabel("CNIC:");
 
+        cnicLabel.setFont(labelFont);
+
+        cnicField =
+                new JTextField();
+
+        cnicField.setFont(fieldFont);
+
+        formPanel.add(cnicLabel);
+
+        formPanel.add(cnicField);
+
+// ================= PHONE =================
+
+        JLabel phoneLabel =
+                new JLabel("Phone:");
+
+        phoneLabel.setFont(labelFont);
+
+        phoneField =
+                new JTextField();
+
+        phoneField.setFont(fieldFont);
+
+        formPanel.add(phoneLabel);
+
+        formPanel.add(phoneField);
+
+// ================= EMAIL =================
+
+        JLabel emailLabel =
+                new JLabel("Email:");
+
+        emailLabel.setFont(labelFont);
+
+        emailField =
+                new JTextField();
+
+        emailField.setFont(fieldFont);
+
+        formPanel.add(emailLabel);
+
+        formPanel.add(emailField);
+
+// ================= ADDRESS =================
+
+        JLabel addressLabel =
+                new JLabel("Address:");
+
+        addressLabel.setFont(labelFont);
+
+        addressField =
+                new JTextField();
+
+        addressField.setFont(fieldFont);
+
+        formPanel.add(addressLabel);
+
+        formPanel.add(addressField);
         formPanel.add(inLabel);
         formPanel.add(checkInField);
 
@@ -291,7 +350,21 @@ public class HotelGUI extends JFrame {
         nameField.addActionListener(e ->
                 checkInField.requestFocus()
         );
+        cnicField.addActionListener(e ->
+                phoneField.requestFocus()
+        );
 
+        phoneField.addActionListener(e ->
+                emailField.requestFocus()
+        );
+
+        emailField.addActionListener(e ->
+                addressField.requestFocus()
+        );
+
+        addressField.addActionListener(e ->
+                checkInField.requestFocus()
+        );
         checkInField.addActionListener(e ->
                 checkOutField.requestFocus()
         );
@@ -649,20 +722,42 @@ public class HotelGUI extends JFrame {
                 roomController
                         .getHotelService()
                         .guiBookRoom(
+
                                 name,
+
+                                cnicField.getText(),
+
+                                phoneField.getText(),
+
+                                emailField.getText(),
+
+                                addressField.getText(),
+
                                 in,
+
                                 out,
+
                                 selectedRooms,
+
                                 selectedServices
                         );
-
                 Booking invoiceBooking =
                         new Booking(
+
                                 name,
+
+                                cnicField.getText(),
+
+                                phoneField.getText(),
+
+                                emailField.getText(),
+
+                                addressField.getText(),
+
                                 in,
+
                                 out
                         );
-
                 for (Room r : selectedRooms) {
 
                     invoiceBooking.addRoom(r);

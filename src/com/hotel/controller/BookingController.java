@@ -18,18 +18,44 @@ public class BookingController {
     // ================= BOOK ROOM =================
 
     public void bookRoom(
-            String name,
+
+            String guestName,
+
+            String cnic,
+
+            String phone,
+
+            String email,
+
+            String address,
+
             LocalDate in,
+
             LocalDate out,
+
             Payment payment,
+
             Scanner sc
     ) {
 
         hotelService.book(
-                name,
+
+                guestName,
+
+                cnic,
+
+                phone,
+
+                email,
+
+                address,
+
                 in,
+
                 out,
+
                 payment,
+
                 sc
         );
     }
