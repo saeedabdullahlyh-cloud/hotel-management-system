@@ -1,4 +1,7 @@
 package com.hotel.view;
+import com.hotel.model.Payment;
+import com.hotel.model.CashPayment;
+import com.hotel.model.CardPayment;
 import com.hotel.controller.RoomController;
 import com.hotel.model.Booking;
 import com.hotel.model.Room;
@@ -32,6 +35,7 @@ public class HotelGUI extends JFrame {
     JButton searchButton;
     JButton cancelButton;
     JButton exitButton;
+    JComboBox<String> paymentBox;
 
     JTextArea roomStatusArea;
 
@@ -111,7 +115,7 @@ public class HotelGUI extends JFrame {
         JPanel formPanel =
                 new JPanel(
                         new GridLayout(
-                                7,
+                                12,
                                 2,
                                 15,
                                 15
@@ -245,6 +249,39 @@ public class HotelGUI extends JFrame {
 
         formPanel.add(roomLabel);
         formPanel.add(roomCountField);
+        // ================= PAYMENT METHOD =================
+
+        JLabel paymentLabel =
+                new JLabel(
+                        "Payment Method:"
+                );
+
+        paymentLabel.setFont(
+                labelFont
+        );
+
+        paymentBox =
+                new JComboBox<>(
+
+                        new String[]{
+
+                                "Cash",
+
+                                "Card"
+                        }
+                );
+
+        paymentBox.setFont(
+                fieldFont
+        );
+
+        formPanel.add(
+                paymentLabel
+        );
+
+        formPanel.add(
+                paymentBox
+        );
 
         poolBox =
                 new JCheckBox(
@@ -758,16 +795,48 @@ public class HotelGUI extends JFrame {
 
                                 out
                         );
+
+// ================= PAYMENT =================
+
+                Payment payment;
+
+                String paymentMethod =
+
+                        paymentBox
+                                .getSelectedItem()
+                                .toString();
+
+                if(paymentMethod.equals("Cash")) {
+
+                    payment =
+                            new CashPayment();
+                }
+
+                else {
+
+                    payment =
+                            new CardPayment();
+                }
+
+// ================= ADD ROOMS =================
+
                 for (Room r : selectedRooms) {
 
                     invoiceBooking.addRoom(r);
                 }
+
+// ================= ADD SERVICES =================
 
                 for (Service s : selectedServices) {
 
                     invoiceBooking.addService(s);
                 }
 
+// ================= PROCESS PAYMENT =================
+
+                payment.pay(
+                        invoiceBooking.total()
+                );
                 StringBuilder invoice =
                         new StringBuilder();
 
@@ -900,6 +969,25 @@ public class HotelGUI extends JFrame {
                 );
 
                 invoice.append(
+
+                        "\nPayment Method : "
+
+                                + paymentMethod
+                );
+
+                invoice.append(
+
+                        "\nTransaction ID : "
+
+                                + payment.transactionId
+                );
+
+                invoice.append(
+
+                        "\nPayment Status : PAID"
+                );
+
+                invoice.append(
                         "\n===================================="
                 );
                 JTextArea invoiceArea =
@@ -1021,85 +1109,67 @@ public class HotelGUI extends JFrame {
                             .getTotalRevenue()
             );
         });
-
         searchButton.addActionListener(e -> {
 
-            String input =
+            String keyword =
+
                     JOptionPane.showInputDialog(
                             this,
-                            "Enter Room ID:"
+                            "Enter Room ID / Name / CNIC / Phone"
                     );
 
-            if (input == null || input.isEmpty()) {
+            if(keyword == null || keyword.isEmpty()) {
+
                 return;
             }
+
+            String result;
 
             try {
 
                 int roomId =
-                        Integer.parseInt(input);
+                        Integer.parseInt(keyword);
 
-                String result =
-                        roomController.searchRoom(
-                                roomId
-                        );
-
-                JTextArea area =
-                        new JTextArea(
-                                result
-                        );
-
-                area.setEditable(false);
-
-                area.setFont(
-
-                        new Font(
-                                "Monospaced",
-                                Font.BOLD,
-                                18
-                        )
-                );
-
-                area.setLineWrap(true);
-
-                area.setWrapStyleWord(true);
-
-                JScrollPane pane =
-                        new JScrollPane(area);
-
-                pane.setPreferredSize(
-
-                        new Dimension(
-                                700,
-                                600
-                        )
-                );
-
-                JOptionPane.showMessageDialog(
-
-                        this,
-
-                        pane,
-
-                        "ROOM DETAILS",
-
-                        JOptionPane.INFORMATION_MESSAGE
-                );
-
+                result =
+                        roomController
+                                .searchRoom(roomId);
             }
 
             catch (Exception ex) {
 
-                JOptionPane.showMessageDialog(
-
-                        this,
-
-                        "Invalid Room ID"
-                );
+                result =
+                        roomController
+                                .searchCustomer(keyword);
             }
-        });
 
-        cancelButton.addActionListener(e -> {
+            JTextArea area =
+                    new JTextArea(result);
+
+            area.setEditable(false);
+
+            area.setFont(
+                    new Font(
+                            "Monospaced",
+                            Font.PLAIN,
+                            16
+                    )
+            );
+
+            JScrollPane pane =
+                    new JScrollPane(area);
+
+            pane.setPreferredSize(
+                    new Dimension(700,500)
+            );
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    pane,
+                    "Search Result",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        });
+                cancelButton.addActionListener(e -> {
 
             try {
 

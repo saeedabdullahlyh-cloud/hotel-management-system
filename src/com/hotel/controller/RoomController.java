@@ -146,7 +146,8 @@ public class RoomController {
         return sb.toString();
     }
 
-    // ================= SEARCH ROOM =================
+
+// ================= SEARCH ROOM =================
 
     public String searchRoom(
             int roomId
@@ -157,6 +158,17 @@ public class RoomController {
         );
     }
 
+// ================= SEARCH CUSTOMER =================
+
+    public String searchCustomer(
+            String keyword
+    ) {
+
+        return hotelService
+                .searchCustomer(
+                        keyword
+                );
+    }
     // ================= CANCEL ROOM =================
 
     public boolean cancelRoom(

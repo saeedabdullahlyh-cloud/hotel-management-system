@@ -1,0 +1,9 @@
+Guest Name: ABDULLAH SAEED
+Room: Sweet | ID: 1
+----------------------
+Guest Name: ABDULLAH SAEED
+Room: Luxury | ID: 2
+----------------------
+Guest Name: MAHID NIAZYI
+Room: Luxury | ID: 3
+----------------------

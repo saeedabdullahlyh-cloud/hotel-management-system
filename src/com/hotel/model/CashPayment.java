@@ -1,9 +1,27 @@
 package com.hotel.model;
 
-public class CashPayment implements Payment {
+public class CashPayment extends Payment {
 
     @Override
     public void pay(double amount) {
-        System.out.println("Paid $" + amount + " using Cash.");
+
+        paid = true;
+
+        transactionId =
+                generateTransactionId();
+
+        System.out.println(
+                "\nCash Payment Successful!"
+        );
+
+        System.out.println(
+                "Transaction ID: "
+                        + transactionId
+        );
+
+        System.out.println(
+                "Paid Amount: $"
+                        + amount
+        );
     }
 }

@@ -791,6 +791,132 @@ public void loadRevenue() {
 
         return "Room ID " + roomId + " is AVAILABLE";
     }
+    // ================= SEARCH CUSTOMER =================
+
+    public String searchCustomer(
+            String keyword
+    ) {
+
+        StringBuilder sb =
+                new StringBuilder();
+
+        try {
+
+            Connection con =
+                    DatabaseConnection
+                            .getConnection();
+
+            String query =
+
+                    "SELECT * FROM bookings " +
+
+                            "WHERE guest_name LIKE ? " +
+
+                            "OR cnic LIKE ? " +
+
+                            "OR phone LIKE ?";
+
+            PreparedStatement ps =
+                    con.prepareStatement(query);
+
+            ps.setString(
+                    1,
+                    "%" + keyword + "%"
+            );
+
+            ps.setString(
+                    2,
+                    "%" + keyword + "%"
+            );
+
+            ps.setString(
+                    3,
+                    "%" + keyword + "%"
+            );
+
+            ResultSet rs =
+                    ps.executeQuery();
+
+            boolean found = false;
+
+            while(rs.next()) {
+
+                found = true;
+
+                sb.append(
+                        "\n=========== CUSTOMER RECORD ===========\n\n"
+                );
+
+                sb.append(
+                        "Customer Name : "
+                                + rs.getString("guest_name")
+                                + "\n"
+                );
+
+                sb.append(
+                        "CNIC : "
+                                + rs.getString("cnic")
+                                + "\n"
+                );
+
+                sb.append(
+                        "Phone : "
+                                + rs.getString("phone")
+                                + "\n"
+                );
+
+                sb.append(
+                        "Email : "
+                                + rs.getString("email")
+                                + "\n"
+                );
+
+                sb.append(
+                        "Address : "
+                                + rs.getString("address")
+                                + "\n"
+                );
+
+                sb.append(
+                        "Room ID : "
+                                + rs.getInt("room_id")
+                                + "\n"
+                );
+
+                sb.append(
+                        "Room Type : "
+                                + rs.getString("room_type")
+                                + "\n"
+                );
+
+                sb.append(
+                        "Check-In : "
+                                + rs.getDate("check_in")
+                                + "\n"
+                );
+
+                sb.append(
+                        "Check-Out : "
+                                + rs.getDate("check_out")
+                                + "\n\n"
+                );
+            }
+
+            con.close();
+
+            if(!found) {
+
+                return "No Customer Found!";
+            }
+        }
+
+        catch (Exception e) {
+
+            return e.getMessage();
+        }
+
+        return sb.toString();
+    }
     // ================= FILE SAVE =================
 
     public void saveToFile() {
