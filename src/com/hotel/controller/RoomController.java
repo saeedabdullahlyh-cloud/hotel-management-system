@@ -117,12 +117,9 @@ public class RoomController {
 
         for (int i = 1; i <= 20; i++) {
 
+
             boolean available =
-                    hotelService.isAvailable(
-                            i,
-                            in,
-                            out
-                    );
+                    hotelService.isAvailable(i);
 
             if (available) {
 
@@ -192,5 +189,31 @@ public class RoomController {
     public Hotel getHotelService() {
 
         return hotelService;
+    }
+    // ================= DASHBOARD STATS =================
+
+    public int getBookedRooms() {
+
+        return hotelService
+                .getBookedRoomCount();
+    }
+
+    public int getAvailableRooms() {
+
+        return hotelService
+                .getAvailableRoomCount();
+    }
+
+    public double getOccupancyRate() {
+
+        return hotelService
+                .getOccupancyRate();
+    }
+    // ================= RECENT BOOKINGS =================
+
+    public String getRecentBookings() {
+
+        return hotelService
+                .getRecentBookings();
     }
 }

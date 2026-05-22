@@ -1,6 +1,11 @@
 package com.hotel.service;
+import java.io.PrintWriter;
 import java.sql.DriverManager;
 import com.hotel.database.DatabaseConnection;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import com.hotel.model.Booking;
 import com.hotel.model.Payment;
 import com.hotel.model.Room;
@@ -59,29 +64,24 @@ public class Hotel {
     }
 
     // ================= SHOW ROOMS =================
-
     public void showRooms(
             LocalDate in,
             LocalDate out
     ) {
 
         System.out.println(
-                "\n--- ROOM STATUS ---"
+                "\n=========== ROOM STATUS ===========\n"
         );
 
         for (int i = 1; i <= 20; i++) {
 
             boolean available =
-                    isAvailable(
-                            i,
-                            in,
-                            out
-                    );
+                    isAvailable(i);
 
             if (available) {
 
                 System.out.println(
-                        "Room ID: "
+                        "Room ID "
                                 + i
                                 + " → AVAILABLE"
                 );
@@ -90,51 +90,25 @@ public class Hotel {
             else {
 
                 System.out.println(
-                        "Room ID: "
+                        "Room ID "
                                 + i
                                 + " → BOOKED"
                 );
             }
         }
     }
-
     // ================= AVAILABILITY =================
 
-    public boolean isAvailable(
-
-            int roomId,
-
-            LocalDate in,
-
-            LocalDate out
-    ) {
-
-        // ===== CHECK ARRAYLIST =====
-
-        for (Booking b : bookings) {
-
-            for (Room r : b.rooms) {
-
-                if (r.id == roomId &&
-                        !(out.isBefore(b.in)
-                                || in.isAfter(b.out))) {
-
-                    return false;
-                }
-            }
-        }
-
-        // ===== CHECK DATABASE =====
+    // ================= CHECK ROOM AVAILABILITY =================
+    public boolean isAvailable(int roomId) {
 
         try {
 
             Connection con =
-                    DatabaseConnection
-                            .getConnection();
+                    DatabaseConnection.getConnection();
 
             String query =
-                    "SELECT * FROM bookings " +
-                            "WHERE room_id = ?";
+                    "SELECT * FROM bookings WHERE room_id=?";
 
             PreparedStatement ps =
                     con.prepareStatement(query);
@@ -144,34 +118,20 @@ public class Hotel {
             ResultSet rs =
                     ps.executeQuery();
 
-            while (rs.next()) {
+            boolean booked = rs.next();
 
-                LocalDate dbIn =
-                        rs.getDate(
-                                "check_in"
-                        ).toLocalDate();
+            con.close();
 
-                LocalDate dbOut =
-                        rs.getDate(
-                                "check_out"
-                        ).toLocalDate();
-
-                if (!(out.isBefore(dbIn)
-                        || in.isAfter(dbOut))) {
-
-                    return false;
-                }
-            }
+            return !booked;
         }
 
-        catch (Exception e) {
+        catch(Exception e) {
 
             e.printStackTrace();
         }
 
         return true;
     }
-
     // ================= VALID INTEGER =================
 
     public int getValidInt(
@@ -256,11 +216,8 @@ public class Hotel {
                             "Enter Room ID: "
                     );
 
-            if (!isAvailable(
-                    roomId,
-                    in,
-                    out
-            )) {
+            if(!isAvailable(roomId))
+             {
 
                 System.out.println(
                         "Room not available!"
@@ -486,47 +443,157 @@ public class Hotel {
         b.invoice();
     }
 
-    // ================= CANCEL =================
 
     // ================= CANCEL ROOM =================
 
+    // ================= CANCEL ROOM =================
     public boolean cancel(int roomId) {
 
-        Booking removeBooking = null;
+        try {
 
-        for(Booking b : bookings) {
+            Connection con =
+                    DatabaseConnection.getConnection();
 
-            for(Room r : b.rooms) {
+            // ================= CHECK ROOM =================
 
-                if(r.id == roomId) {
+            PreparedStatement check =
+                    con.prepareStatement(
 
-                    removeBooking = b;
-
-                    deleteBookingFromDB(
-                            roomId
+                            "SELECT * FROM bookings WHERE room_id=?"
                     );
 
-                    break;
-                }
+            check.setInt(1, roomId);
+
+            ResultSet rs =
+                    check.executeQuery();
+
+            if(!rs.next()) {
+
+                System.out.println("Room Not Found");
+
+                return false;
             }
-        }
 
-        if(removeBooking != null) {
+            // ================= SAVE HISTORY =================
 
-            bookings.remove(
-                    removeBooking
-            );
+            PreparedStatement history =
+                    con.prepareStatement(
 
-            saveToFile();
+                            "INSERT INTO booking_history " +
+                                    "(guest_name, cnic, phone, email, address, room_id, room_type, check_in, check_out, total_days, grand_total, payment_method, transaction_id, status) " +
+                                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+                    );
 
-            saveRevenue();
+            history.setString(1, rs.getString("guest_name"));
+            history.setString(2, rs.getString("cnic"));
+            history.setString(3, rs.getString("phone"));
+            history.setString(4, rs.getString("email"));
+            history.setString(5, rs.getString("address"));
+            history.setInt(6, rs.getInt("room_id"));
+            history.setString(7, rs.getString("room_type"));
+            history.setDate(8, rs.getDate("check_in"));
+            history.setDate(9, rs.getDate("check_out"));
+            history.setInt(10, rs.getInt("total_days"));
+            history.setDouble(11, rs.getDouble("grand_total"));
+            history.setString(12, "Cash");
+            history.setString(13, "TXN" + System.currentTimeMillis());
+            history.setString(14, "CANCELLED");
+
+            history.executeUpdate();
+
+            // ================= DELETE CHILD TABLES FIRST =================
+
+            PreparedStatement deletePayment =
+                    con.prepareStatement(
+
+                            "DELETE FROM payments " +
+                                    "WHERE booking_id IN " +
+                                    "(SELECT booking_id FROM booking_details WHERE room_id=?)"
+                    );
+
+            deletePayment.setInt(1, roomId);
+
+            deletePayment.executeUpdate();
+
+            PreparedStatement deleteDetails =
+                    con.prepareStatement(
+
+                            "DELETE FROM booking_details WHERE room_id=?"
+                    );
+
+            deleteDetails.setInt(1, roomId);
+
+            deleteDetails.executeUpdate();
+
+            // ================= DELETE MAIN BOOKING =================
+
+            PreparedStatement deleteBooking =
+                    con.prepareStatement(
+
+                            "DELETE FROM bookings WHERE room_id=?"
+                    );
+
+            deleteBooking.setInt(1, roomId);
+
+            deleteBooking.executeUpdate();
+
+            // ================= DELETE CUSTOMER =================
+
+            PreparedStatement deleteCustomer =
+                    con.prepareStatement(
+
+                            "DELETE FROM customers " +
+                                    "WHERE customer_id NOT IN " +
+                                    "(SELECT customer_id FROM booking_details)"
+                    );
+
+            deleteCustomer.executeUpdate();
+            //===================================================
+                        PreparedStatement deleteRoom =
+                    con.prepareStatement(
+                            "DELETE FROM rooms WHERE room_id=?"
+                    );
+
+            deleteRoom.setInt(1, roomId);
+
+            deleteRoom.executeUpdate();
+
+
+            // ================= ROOM AVAILABLE =================
+
+            PreparedStatement updateRoom =
+                    con.prepareStatement(
+
+                            "UPDATE rooms " +
+                                    "SET status='AVAILABLE' " +
+                                    "WHERE room_id=?"
+                    );
+
+            updateRoom.setInt(1, roomId);
+
+            updateRoom.executeUpdate();
+
+            con.close();
+
+            // ================= MEMORY REFRESH =================
+
+            bookings.clear();
+
+            loadBookingsFromDB();
+
+            System.out.println("Room Cancelled Successfully!");
 
             return true;
         }
 
-        return false;
+        catch(Exception e) {
+
+            e.printStackTrace();
+
+            return false;
+        }
     }
-    // ================= REVENUE =================
+// ================= REVENUE =================
 
     public void addRevenue(
             double amount
@@ -996,7 +1063,29 @@ public void loadRevenue() {
             e.printStackTrace();
         }
     }
+// ================= CLEAR REVENUE =================
 
+    public void clearRevenue() {
+
+        totalRevenue = 0;
+
+        try {
+
+            PrintWriter pw =
+                    new PrintWriter(
+                            "revenue.txt"
+                    );
+
+            pw.print("0");
+
+            pw.close();
+        }
+
+        catch(Exception e) {
+
+            e.printStackTrace();
+        }
+    }
     // ================= DATABASE SAVE =================
     public void saveBookingToDB(
             Booking booking
@@ -1095,7 +1184,441 @@ public void loadRevenue() {
             System.out.println(e);
         }
     }
+    // ================= SAVE CUSTOMER =================
 
+    public int saveCustomer(
+
+            Booking booking
+    ) {
+
+        int customerId = -1;
+
+        try {
+
+            Connection con =
+                    DatabaseConnection
+                            .getConnection();
+
+            String query =
+
+                    "INSERT INTO customers " +
+
+                            "(guest_name, cnic, phone, email, address) " +
+
+                            "VALUES (?, ?, ?, ?, ?)";
+
+            PreparedStatement ps =
+                    con.prepareStatement(
+
+                            query,
+
+                            Statement.RETURN_GENERATED_KEYS
+                    );
+
+            ps.setString(
+                    1,
+                    booking.guestName
+            );
+
+            ps.setString(
+                    2,
+                    booking.cnic
+            );
+
+            ps.setString(
+                    3,
+                    booking.phone
+            );
+
+            ps.setString(
+                    4,
+                    booking.email
+            );
+
+            ps.setString(
+                    5,
+                    booking.address
+            );
+
+            ps.executeUpdate();
+
+            ResultSet rs =
+                    ps.getGeneratedKeys();
+
+            if(rs.next()) {
+
+                customerId =
+                        rs.getInt(1);
+            }
+
+            con.close();
+        }
+
+        catch(Exception e) {
+
+            e.printStackTrace();
+        }
+
+        return customerId;
+    }
+// ================= SAVE BOOKING DETAILS =================
+
+    // ================= SAVE BOOKING DETAILS =================
+    public int saveBookingDetails(
+
+            int customerId,
+
+            Booking booking
+    ) {
+
+        int bookingId = -1;
+
+        try {
+
+            Connection con =
+                    DatabaseConnection.getConnection();
+
+            for(Room room : booking.rooms) {
+
+                String query =
+
+                        "INSERT INTO booking_details " +
+
+                                "(customer_id, room_id, check_in, check_out, total_days, grand_total) " +
+
+                                "VALUES (?, ?, ?, ?, ?, ?)";
+
+                PreparedStatement ps =
+                        con.prepareStatement(
+
+                                query,
+
+                                Statement.RETURN_GENERATED_KEYS
+                        );
+
+                ps.setInt(
+                        1,
+                        customerId
+                );
+
+                ps.setInt(
+                        2,
+                        room.id
+                );
+
+                ps.setDate(
+                        3,
+                        java.sql.Date.valueOf(
+                                booking.in
+                        )
+                );
+
+                ps.setDate(
+                        4,
+                        java.sql.Date.valueOf(
+                                booking.out
+                        )
+                );
+
+                ps.setInt(
+                        5,
+                        (int) booking.days()
+                );
+
+                ps.setDouble(
+                        6,
+                        booking.total()
+                );
+
+                ps.executeUpdate();
+
+                ResultSet rs =
+                        ps.getGeneratedKeys();
+
+                if(rs.next()) {
+
+                    bookingId =
+                            rs.getInt(1);
+                }
+            }
+
+            con.close();
+        }
+
+        catch(Exception e) {
+
+            e.printStackTrace();
+        }
+
+        return bookingId;
+    }
+    public void saveRoom(Room room) {
+
+        try {
+
+            Connection con =
+                    DatabaseConnection.getConnection();
+
+            // CHECK ROOM EXISTS
+            PreparedStatement check =
+                    con.prepareStatement(
+
+                            "SELECT * FROM rooms WHERE room_id=?"
+                    );
+
+            check.setInt(1, room.id);
+
+            ResultSet rs =
+                    check.executeQuery();
+
+            // IF ROOM EXISTS -> UPDATE
+            if(rs.next()) {
+
+                PreparedStatement update =
+                        con.prepareStatement(
+
+                                "UPDATE rooms " +
+                                        "SET room_type=?, room_price=?, status=? " +
+                                        "WHERE room_id=?"
+                        );
+
+                update.setString(1, room.type);
+
+                update.setDouble(2, room.price);
+
+                update.setString(3, "BOOKED");
+
+                update.setInt(4, room.id);
+
+                update.executeUpdate();
+            }
+
+            // OTHERWISE INSERT
+            else {
+
+                PreparedStatement insert =
+                        con.prepareStatement(
+
+                                "INSERT INTO rooms " +
+                                        "(room_id, room_type, room_price, status) " +
+                                        "VALUES (?, ?, ?, ?)"
+                        );
+
+                insert.setInt(1, room.id);
+
+                insert.setString(2, room.type);
+
+                insert.setDouble(3, room.price);
+
+                insert.setString(4, "BOOKED");
+
+                insert.executeUpdate();
+            }
+
+            con.close();
+        }
+
+        catch(Exception e) {
+
+            e.printStackTrace();
+        }
+    }
+    // ================= SAVE PAYMENT =================
+
+    public void savePayment(
+
+            int bookingId,
+
+            String paymentMethod,
+
+            String transactionId,
+
+            double amount
+    ) {
+
+        try {
+
+            Connection con =
+                    DatabaseConnection
+                            .getConnection();
+
+            String query =
+
+                    "INSERT INTO payments " +
+
+                            "(booking_id, payment_method, transaction_id, payment_status, amount) " +
+
+                            "VALUES (?, ?, ?, ?, ?)";
+
+            PreparedStatement ps =
+                    con.prepareStatement(query);
+
+            ps.setInt(
+                    1,
+                    bookingId
+            );
+
+            ps.setString(
+                    2,
+                    paymentMethod
+            );
+
+            ps.setString(
+                    3,
+                    transactionId
+            );
+
+            ps.setString(
+                    4,
+                    "PAID"
+            );
+
+            ps.setDouble(
+                    5,
+                    amount
+            );
+
+            ps.executeUpdate();
+
+            con.close();
+        }
+
+        catch(Exception e) {
+
+            e.printStackTrace();
+        }
+    }
+    // ================= SAVE ROOM =================
+
+
+
+    // ================= SAVE HISTORY =================
+
+    public void saveBookingHistory(
+            int roomId
+    ) {
+
+        try {
+
+            Connection con =
+                    DatabaseConnection
+                            .getConnection();
+
+            String selectQuery =
+
+                    "SELECT * FROM bookings " +
+
+                            "WHERE room_id=?";
+
+            PreparedStatement selectPs =
+                    con.prepareStatement(
+                            selectQuery
+                    );
+
+            selectPs.setInt(
+                    1,
+                    roomId
+            );
+
+            ResultSet rs =
+                    selectPs.executeQuery();
+
+            while(rs.next()) {
+
+                String insertQuery =
+
+                        "INSERT INTO booking_history " +
+
+                                "(guest_name, cnic, phone, email, address, room_id, room_type, check_in, check_out, total_days, grand_total, payment_method, transaction_id, status) " +
+
+                                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+                PreparedStatement insertPs =
+                        con.prepareStatement(
+                                insertQuery
+                        );
+
+                insertPs.setString(
+                        1,
+                        rs.getString("guest_name")
+                );
+
+                insertPs.setString(
+                        2,
+                        rs.getString("cnic")
+                );
+
+                insertPs.setString(
+                        3,
+                        rs.getString("phone")
+                );
+
+                insertPs.setString(
+                        4,
+                        rs.getString("email")
+                );
+
+                insertPs.setString(
+                        5,
+                        rs.getString("address")
+                );
+
+                insertPs.setInt(
+                        6,
+                        rs.getInt("room_id")
+                );
+
+                insertPs.setString(
+                        7,
+                        rs.getString("room_type")
+                );
+
+                insertPs.setDate(
+                        8,
+                        rs.getDate("check_in")
+                );
+
+                insertPs.setDate(
+                        9,
+                        rs.getDate("check_out")
+                );
+
+                insertPs.setInt(
+                        10,
+                        rs.getInt("total_days")
+                );
+
+                insertPs.setDouble(
+                        11,
+                        rs.getDouble("grand_total")
+                );
+
+                insertPs.setString(
+                        12,
+                        "Cash"
+                );
+
+                insertPs.setString(
+                        13,
+                        "Archived"
+                );
+
+                insertPs.setString(
+                        14,
+                        "CANCELLED"
+                );
+
+                insertPs.executeUpdate();
+            }
+
+            con.close();
+        }
+
+        catch(Exception e) {
+
+            e.printStackTrace();
+        }
+    }
     // ================= DATABASE DELETE =================
 
     public void deleteBookingFromDB(
@@ -1242,7 +1765,7 @@ public void loadRevenue() {
 
         for(int i = 1; i <= 20; i++) {
 
-            if(isAvailable(i, in, out)) {
+            if(isAvailable(i)) {
 
                 return i;
             }
@@ -1274,109 +1797,268 @@ public void loadRevenue() {
             List<Service> selectedServices
     ) {
 
-        Booking booking =
-                new Booking(
+        try {
 
-                        customerName,
+            Booking booking =
+                    new Booking(
 
-                        cnic,
+                            customerName,
 
-                        phone,
+                            cnic,
 
-                        email,
+                            phone,
 
-                        address,
+                            email,
 
-                        in,
+                            address,
 
-                        out
-                );
-        // ================= ADD ROOMS =================
+                            in,
 
-        for(Room r : selectedRooms) {
+                            out
+                    );
 
-            if(!isAvailable(
-                    r.id,
-                    in,
-                    out
-            )) {
+            // ========= ADD ROOMS =========
 
-                throw new RuntimeException(
+            // ========= ADD ROOMS =========
 
-                        "Room ID "
-                                + r.id
-                                + " already booked!"
-                );
+            for(Room r : selectedRooms) {
+
+                if(!isAvailable(r.id)) {
+
+                    throw new RuntimeException(
+                            "Room ID " + r.id + " already booked!"
+                    );
+                }
+
+
+
+                    booking.addRoom(r);
+
+                    // SAVE ROOM IN SQL
+                    saveRoom(r);
+
+                    // UPDATE STATUS
+                    updateRoomStatus(
+                            r.id,
+                            "BOOKED"
+                    );
+                }
+
+            // ========= SERVICES =========
+
+            for(Service s : selectedServices) {
+
+                booking.addService(s);
             }
 
-            booking.addRoom(r);
+            bookings.add(booking);
+
+            addRevenue(
+                    booking.total()
+            );
+
+            // =====================================
+            // SAVE CUSTOMER
+            // =====================================
+
+            int customerId =
+                    saveCustomer(booking);
+
+            // =====================================
+            // SAVE BOOKING DETAILS
+            // =====================================
+
+            int bookingId =
+                    saveBookingDetails(
+                            customerId,
+                            booking
+                    );
+
+            // =====================================
+            // SAVE PAYMENT
+            // =====================================
+
+            savePayment(
+
+                    bookingId,
+
+                    "Cash",
+
+                    "TXN" + System.currentTimeMillis(),
+
+                    booking.total()
+            );
+
+            // =====================================
+            // SAVE BOOKINGS TABLE
+            // =====================================
+
+            saveBookingToDB(booking);
+            refreshRoomStatus();
+            saveToFile();
+
+            saveRevenue();
+
+            System.out.println(
+                    "Booking Saved Successfully!"
+            );
         }
 
-        // ================= COMPLIMENTARY =================
+        catch(Exception e) {
 
-        booking.addService(
-
-                new Service(
-                        "Welcome Drinks",
-                        0,
-                        true
-                )
-        );
-
-        booking.addService(
-
-                new Service(
-                        "Free WiFi",
-                        0,
-                        true
-                )
-        );
-
-        booking.addService(
-
-                new Service(
-                        "Free Parking",
-                        0,
-                        true
-                )
-        );
-
-        booking.addService(
-
-                new Service(
-                        "Room Cleaning",
-                        0,
-                        true
-                )
-        );
-
-        // ================= EXTRA SERVICES =================
-
-        for(Service s : selectedServices) {
-
-            booking.addService(s);
+            e.printStackTrace();
         }
+    }
+// ================= BOOKED ROOM COUNT =================
 
-        // ================= SAVE =================
+    public int getBookedRoomCount() {
 
-        bookings.add(booking);
-
-        addRevenue(
-                booking.total()
-        );
-
-        saveBookingToDB(
-                booking
-        );
-
-        saveToFile();
-
-        saveRevenue();
+        return bookings.size();
     }
 
+// ================= AVAILABLE ROOM COUNT =================
+
+    public int getAvailableRoomCount() {
+
+        return 20 - bookings.size();
+    }
+
+// ================= OCCUPANCY RATE =================
+
+    public double getOccupancyRate() {
+
+        return (
+
+                getBookedRoomCount()
+
+                        / 20.0
+
+        ) * 100;
+    }
+    // ================= RECENT BOOKINGS =================
+
+    public String getRecentBookings() {
+
+        StringBuilder sb =
+                new StringBuilder();
+
+        int count = 0;
+
+        for(int i = bookings.size() - 1;
+
+            i >= 0;
+
+            i--) {
+
+            Booking b =
+                    bookings.get(i);
+
+            for(Room r : b.rooms) {
+
+                sb.append(
+
+                        b.guestName
+
+                                + " → Room "
+
+                                + r.id
+
+                                + "\n"
+                );
+
+                count++;
+
+                if(count == 5) {
+
+                    return sb.toString();
+                }
+            }
+        }
+
+        if(sb.length() == 0) {
+
+            return "No Recent Bookings";
+        }
+
+        return sb.toString();
+    }
     public double getRevenue() {
 
         return totalRevenue;
     }
+    public void updateRoomStatus(
 
+            int roomId,
+
+            String status
+    ) {
+
+        try {
+
+            Connection con =
+                    DatabaseConnection.getConnection();
+
+            String query =
+                    "UPDATE rooms SET status=? WHERE room_id=?";
+
+            PreparedStatement ps =
+                    con.prepareStatement(query);
+
+            ps.setString(
+                    1,
+                    status
+            );
+
+            ps.setInt(
+                    2,
+                    roomId
+            );
+
+            ps.executeUpdate();
+
+            con.close();
+        }
+
+        catch(Exception e) {
+
+            e.printStackTrace();
+        }
+    }
+    public void refreshRoomStatus() {
+
+        try {
+
+            Connection con =
+                    DatabaseConnection.getConnection();
+
+            // FIRST ALL AVAILABLE
+            PreparedStatement reset =
+                    con.prepareStatement(
+
+                            "UPDATE rooms SET status='AVAILABLE'"
+                    );
+
+            reset.executeUpdate();
+
+            // NOW BOOKED ROOMS
+            PreparedStatement booked =
+                    con.prepareStatement(
+
+                            "UPDATE rooms r " +
+                                    "JOIN bookings b " +
+                                    "ON r.room_id = b.room_id " +
+                                    "SET r.status='BOOKED'"
+                    );
+
+            booked.executeUpdate();
+
+            con.close();
+        }
+
+        catch(Exception e) {
+
+            e.printStackTrace();
+        }
+
+    }
 }

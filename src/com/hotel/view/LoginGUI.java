@@ -16,6 +16,7 @@ public class LoginGUI extends JFrame {
 
     JButton exitButton;
 
+
     LoginController loginController =
             new LoginController();
 
@@ -144,7 +145,17 @@ public class LoginGUI extends JFrame {
         );
 
         add(loginButton);
+// ================= ENTER KEY NAVIGATION =================
 
+        usernameField.addActionListener(e -> {
+
+            passwordField.requestFocus();
+        });
+
+        passwordField.addActionListener(e -> {
+
+            loginButton.doClick();
+        });
         // ================= EXIT BUTTON =================
 
         exitButton =

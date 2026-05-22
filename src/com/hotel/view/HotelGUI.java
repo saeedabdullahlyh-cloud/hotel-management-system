@@ -7,7 +7,7 @@ import com.hotel.model.Booking;
 import com.hotel.model.Room;
 import com.hotel.model.Service;
 import com.hotel.service.PaymentService;
-
+import java.time.temporal.ChronoUnit;
 import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDate;
@@ -385,8 +385,9 @@ public class HotelGUI extends JFrame {
         leftPanel.add(roomScroll);
 
         nameField.addActionListener(e ->
-                checkInField.requestFocus()
+                cnicField.requestFocus()
         );
+
         cnicField.addActionListener(e ->
                 phoneField.requestFocus()
         );
@@ -402,6 +403,7 @@ public class HotelGUI extends JFrame {
         addressField.addActionListener(e ->
                 checkInField.requestFocus()
         );
+
         checkInField.addActionListener(e ->
                 checkOutField.requestFocus()
         );
@@ -410,9 +412,17 @@ public class HotelGUI extends JFrame {
                 roomCountField.requestFocus()
         );
 
-        roomCountField.addActionListener(e ->
-                generateRoomSelection()
-        );
+        roomCountField.addActionListener(e -> {
+
+            generateRoomSelection();
+
+            if(!roomTypeBoxes.isEmpty()) {
+
+                roomTypeBoxes
+                        .get(0)
+                        .requestFocus();
+            }
+        });
 
         roomStatusArea =
                 new JTextArea();
@@ -581,17 +591,26 @@ public class HotelGUI extends JFrame {
                     return;
                 }
 
+                LocalDate today =
+                        LocalDate.now();
+
                 LocalDate in =
                         LocalDate.of(
-                                2025,
-                                1,
+
+                                today.getYear(),
+
+                                today.getMonthValue(),
+
                                 inDay
                         );
 
                 LocalDate out =
                         LocalDate.of(
-                                2025,
-                                1,
+
+                                today.getYear(),
+
+                                today.getMonthValue(),
+
                                 outDay
                         );
 
@@ -645,11 +664,7 @@ public class HotelGUI extends JFrame {
 
                                 roomController
                                         .getHotelService()
-                                        .isAvailable(
-                                                roomCheck,
-                                                in,
-                                                out
-                                        );
+                                        .isAvailable(roomCheck);
 
                         if (available) {
 
@@ -1101,12 +1116,114 @@ public class HotelGUI extends JFrame {
 
         revenueButton.addActionListener(e -> {
 
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Total Revenue = $"
-                            + roomController
+            int totalRooms = 20;
+
+            int bookedRooms =
+                    roomController
+                            .getBookedRooms();
+
+            int availableRooms =
+                    roomController
+                            .getAvailableRooms();
+
+            double occupancy =
+                    roomController
+                            .getOccupancyRate();
+
+            double revenue =
+                    roomController
                             .getHotelService()
-                            .getTotalRevenue()
+                            .getRevenue();
+
+            StringBuilder dashboard =
+                    new StringBuilder();
+
+            dashboard.append(
+                    "=========== HOTEL DASHBOARD ===========\n\n"
+            );
+
+            dashboard.append(
+                    "Total Rooms        : "
+                            + totalRooms
+                            + "\n"
+            );
+
+            dashboard.append(
+                    "Booked Rooms       : "
+                            + bookedRooms
+                            + "\n"
+            );
+
+            dashboard.append(
+                    "Available Rooms    : "
+                            + availableRooms
+                            + "\n"
+            );
+
+            dashboard.append(
+                    "Occupancy Rate     : "
+                            + String.format(
+                            "%.2f",
+                            occupancy
+                    )
+                            + "%\n"
+            );
+
+            dashboard.append(
+                    "Total Revenue      : $"
+                            + revenue
+                            + "\n"
+            );
+
+            dashboard.append(
+
+                    "\n\n=========== RECENT BOOKINGS ===========\n\n"
+            );
+
+            dashboard.append(
+
+                    roomController
+                            .getRecentBookings()
+            );
+
+            dashboard.append(
+                    "\n======================================="
+            );
+
+            JTextArea area =
+                    new JTextArea(
+                            dashboard.toString()
+                    );
+
+            area.setEditable(false);
+
+            area.setFont(
+                    new Font(
+                            "Monospaced",
+                            Font.BOLD,
+                            20
+                    )
+            );
+
+            JScrollPane pane =
+                    new JScrollPane(area);
+
+            pane.setPreferredSize(
+                    new Dimension(
+                            650,
+                            400
+                    )
+            );
+
+            JOptionPane.showMessageDialog(
+
+                    this,
+
+                    pane,
+
+                    "ADVANCED DASHBOARD",
+
+                    JOptionPane.INFORMATION_MESSAGE
             );
         });
         searchButton.addActionListener(e -> {
@@ -1169,7 +1286,7 @@ public class HotelGUI extends JFrame {
                     JOptionPane.INFORMATION_MESSAGE
             );
         });
-                cancelButton.addActionListener(e -> {
+        cancelButton.addActionListener(e -> {
 
             try {
 
@@ -1179,37 +1296,89 @@ public class HotelGUI extends JFrame {
                                 "Enter Room ID To Cancel:"
                         );
 
-                if (input == null)
+                if(input == null || input.isEmpty()) {
+
                     return;
+                }
 
                 int roomId =
                         Integer.parseInt(input);
 
-                roomController.cancelRoom(
-                        roomId
-                );
+                boolean cancelled =
 
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Room Cancelled Successfully!"
-                );
+                        roomController.cancelRoom(
+                                roomId
+                        );
 
-                roomStatusArea.setText(
-                        "Room ID "
-                                + roomId
-                                + " cancelled."
-                );
+                if(cancelled) {
+
+                    JOptionPane.showMessageDialog(
+
+                            this,
+
+                            "Room Cancelled Successfully!"
+                    );
+
+                    StringBuilder sb =
+                            new StringBuilder();
+
+                    sb.append(
+                            "=========== ROOM STATUS ===========\n\n"
+                    );
+
+                    for(int i = 1; i <= 20; i++) {
+
+                        boolean available =
+
+                                roomController
+                                        .getHotelService()
+                                        .isAvailable(i);
+
+                        if(available) {
+
+                            sb.append(
+                                    "Room ID "
+                                            + i
+                                            + " → AVAILABLE\n"
+                            );
+                        }
+
+                        else {
+
+                            sb.append(
+                                    "Room ID "
+                                            + i
+                                            + " → BOOKED\n"
+                            );
+                        }
+                    }
+
+                    roomStatusArea.setText(
+                            sb.toString()
+                    );
+                }
+
+                else {
+
+                    JOptionPane.showMessageDialog(
+
+                            this,
+
+                            "Room Not Found!"
+                    );
+                }
             }
 
-            catch (Exception ex) {
+            catch(Exception ex) {
 
                 JOptionPane.showMessageDialog(
+
                         this,
+
                         "Invalid Room ID"
                 );
             }
         });
-
         exitButton.addActionListener(e -> {
 
             System.exit(0);

@@ -1,5 +1,10 @@
 package com.hotel.view;
 
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.general.DefaultPieDataset;
+
 import com.hotel.service.Hotel;
 
 import javax.swing.*;
@@ -12,7 +17,7 @@ public class DashboardGUI extends JFrame {
     JButton revenueButton;
 
     JButton logoutButton;
-
+    JButton clearRevenueButton;
     JLabel totalRoomsLabel;
 
     JLabel bookedRoomsLabel;
@@ -26,10 +31,6 @@ public class DashboardGUI extends JFrame {
 
     public DashboardGUI() {
 
-        // ================= LOAD BOOKINGS =================
-
-//        hotel.loadBookingsFromDB();
-
         // ================= FRAME =================
 
         setTitle("Hotel Dashboard");
@@ -42,13 +43,17 @@ public class DashboardGUI extends JFrame {
 
         setLayout(new BorderLayout());
 
+        getContentPane().setBackground(
+                new Color(226,232,240)
+        );
+
         // ================= HEADER =================
 
         JPanel header =
                 new JPanel();
 
         header.setBackground(
-                new Color(44,62,80)
+                new Color(15,23,42)
         );
 
         JLabel title =
@@ -60,7 +65,7 @@ public class DashboardGUI extends JFrame {
 
         title.setFont(
                 new Font(
-                        "Arial",
+                        "Segoe UI",
                         Font.BOLD,
                         34
                 )
@@ -72,15 +77,36 @@ public class DashboardGUI extends JFrame {
 
         // ================= SIDEBAR =================
 
+// ================= SIDEBAR =================
+
         JPanel sidebar =
                 new JPanel();
 
         sidebar.setLayout(
-                new GridLayout(10,1,10,10)
+                new BoxLayout(
+                        sidebar,
+                        BoxLayout.Y_AXIS
+                )
         );
 
         sidebar.setBackground(
-                new Color(52,73,94)
+                new Color(30,41,59)
+        );
+
+        sidebar.setPreferredSize(
+                new Dimension(
+                        280,
+                        700
+                )
+        );
+
+        sidebar.setBorder(
+                BorderFactory.createEmptyBorder(
+                        40,
+                        20,
+                        40,
+                        20
+                )
         );
 
         bookingButton =
@@ -91,12 +117,15 @@ public class DashboardGUI extends JFrame {
 
         logoutButton =
                 new JButton("LOGOUT");
+        clearRevenueButton =
+                new JButton("CLEAR REVENUE");
 
         JButton[] buttons = {
 
                 bookingButton,
                 revenueButton,
-                logoutButton
+                logoutButton,
+                clearRevenueButton
         };
 
         for(JButton button : buttons) {
@@ -104,20 +133,49 @@ public class DashboardGUI extends JFrame {
             button.setFocusPainted(false);
 
             button.setBackground(
-                    new Color(41,128,185)
+                    new Color(59,130,246)
             );
 
             button.setForeground(Color.WHITE);
 
             button.setFont(
                     new Font(
-                            "Arial",
+                            "Segoe UI",
                             Font.BOLD,
-                            18
+                            22
+                    )
+            );
+
+            button.setMaximumSize(
+                    new Dimension(
+                            220,
+                            70
+                    )
+            );
+
+            button.setAlignmentX(
+                    Component.CENTER_ALIGNMENT
+            );
+
+            button.setBorder(
+                    BorderFactory.createEmptyBorder(
+                            15,
+                            20,
+                            15,
+                            20
                     )
             );
 
             sidebar.add(button);
+
+            sidebar.add(
+                    Box.createRigidArea(
+                            new Dimension(
+                                    0,
+                                    25
+                            )
+                    )
+            );
         }
 
         add(sidebar, BorderLayout.WEST);
@@ -127,19 +185,22 @@ public class DashboardGUI extends JFrame {
         JPanel centerPanel =
                 new JPanel();
 
+        centerPanel.setBackground(
+                new Color(226,232,240)
+        );
+
         centerPanel.setLayout(
-                new GridLayout(2,2,30,30)
+                new GridLayout(2,2,40,40)
         );
 
         centerPanel.setBorder(
                 BorderFactory.createEmptyBorder(
-                        40,
-                        40,
-                        40,
-                        40
+                        30,
+                        30,
+                        20,
+                        30
                 )
         );
-
         // ================= REAL DATA =================
 
         int totalRooms = 20;
@@ -189,6 +250,63 @@ public class DashboardGUI extends JFrame {
 
         add(centerPanel, BorderLayout.CENTER);
 
+        // ================= PIE CHART =================
+// ================= PIE CHART =================
+
+        DefaultPieDataset dataset =
+                new DefaultPieDataset();
+
+        dataset.setValue(
+                "Booked Rooms",
+                bookedRooms
+        );
+
+        dataset.setValue(
+                "Available Rooms",
+                availableRooms
+        );
+
+        JFreeChart chart =
+                ChartFactory.createPieChart(
+
+                        "Room Occupancy",
+
+                        dataset,
+
+                        true,
+
+                        true,
+
+                        false
+                );
+
+        ChartPanel chartPanel =
+                new ChartPanel(chart);
+
+        chartPanel.setPreferredSize(
+                new Dimension(
+                        350,
+                        220
+                )
+        );
+
+        JPanel chartContainer =
+                new JPanel(
+                        new FlowLayout(
+                                FlowLayout.CENTER,
+                                20,
+                                10
+                        )
+                );
+
+        chartContainer.setBackground(
+                new Color(226,232,240)
+        );
+
+        chartContainer.add(chartPanel);
+
+        add(chartContainer, BorderLayout.SOUTH);
+
         // ================= BUTTON ACTIONS =================
 
         bookingButton.addActionListener(e -> {
@@ -199,17 +317,56 @@ public class DashboardGUI extends JFrame {
         revenueButton.addActionListener(e -> {
 
             JOptionPane.showMessageDialog(
+
                     this,
+
                     "Total Revenue = $" + revenue
             );
         });
+// ================= CLEAR REVENUE =================
 
+        clearRevenueButton.addActionListener(e -> {
+
+            int choice =
+                    JOptionPane.showConfirmDialog(
+
+                            this,
+
+                            "Are you sure you want to clear all revenue?",
+
+                            "Admin Control",
+
+                            JOptionPane.YES_NO_OPTION
+                    );
+
+            if(choice == JOptionPane.YES_OPTION) {
+
+                hotel.clearRevenue();
+
+                revenueLabel.setText(
+
+                        "<html><center>"
+                                + "<h1>$0</h1>"
+                                + "<h2>TOTAL REVENUE</h2>"
+                                + "</center></html>"
+                );
+
+                JOptionPane.showMessageDialog(
+
+                        this,
+
+                        "Revenue cleared successfully!"
+                );
+            }
+        });
         logoutButton.addActionListener(e -> {
 
             new LoginGUI().setVisible(true);
 
             dispose();
         });
+
+        setVisible(true);
     }
 
     // ================= CARD METHOD =================
@@ -239,21 +396,36 @@ public class DashboardGUI extends JFrame {
         label.setOpaque(true);
 
         label.setBackground(
-                new Color(236,240,241)
+                new Color(248,250,252)
         );
-
+        label.setPreferredSize(
+                new Dimension(
+                        300,
+                        140
+                )
+        );
         label.setFont(
                 new Font(
-                        "Arial",
+                        "Segoe UI",
                         Font.BOLD,
                         22
                 )
         );
 
         label.setBorder(
-                BorderFactory.createLineBorder(
-                        Color.GRAY,
-                        2
+                BorderFactory.createCompoundBorder(
+
+                        BorderFactory.createLineBorder(
+                                new Color(203,213,225),
+                                2
+                        ),
+
+                        BorderFactory.createEmptyBorder(
+                                20,
+                                20,
+                                20,
+                                20
+                        )
                 )
         );
 
