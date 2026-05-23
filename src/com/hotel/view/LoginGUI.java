@@ -33,7 +33,7 @@ public class LoginGUI extends JFrame {
         setLayout(null);
 
         getContentPane().setBackground(
-                new Color(240, 240, 240)
+                new Color(15, 23, 42)
         );
 
         // ================= TITLE =================
@@ -45,11 +45,13 @@ public class LoginGUI extends JFrame {
 
         title.setBounds(70, 20, 400, 40);
 
+        title.setForeground(Color.WHITE);
+
         title.setFont(
                 new Font(
-                        "Arial",
+                        "Segoe UI",
                         Font.BOLD,
-                        28
+                        32
                 )
         );
 
@@ -69,7 +71,7 @@ public class LoginGUI extends JFrame {
                         18
                 )
         );
-
+        userLabel.setForeground(Color.WHITE);
         add(userLabel);
 
         // ================= USERNAME FIELD =================
@@ -86,7 +88,20 @@ public class LoginGUI extends JFrame {
                         18
                 )
         );
+        usernameField.setBackground(
+                new Color(51, 65, 85)
+        );
 
+        usernameField.setForeground(Color.WHITE);
+
+        usernameField.setCaretColor(Color.WHITE);
+
+        usernameField.setBorder(
+                BorderFactory.createLineBorder(
+                        new Color(59,130,246),
+                        2
+                )
+        );
         add(usernameField);
 
         // ================= PASSWORD LABEL =================
@@ -103,7 +118,7 @@ public class LoginGUI extends JFrame {
                         18
                 )
         );
-
+        passLabel.setForeground(Color.WHITE);
         add(passLabel);
 
         // ================= PASSWORD FIELD =================
@@ -120,7 +135,20 @@ public class LoginGUI extends JFrame {
                         18
                 )
         );
+        passwordField.setBackground(
+                new Color(51, 65, 85)
+        );
 
+        passwordField.setForeground(Color.WHITE);
+
+        passwordField.setCaretColor(Color.WHITE);
+
+        passwordField.setBorder(
+                BorderFactory.createLineBorder(
+                        new Color(59,130,246),
+                        2
+                )
+        );
         add(passwordField);
 
         // ================= LOGIN BUTTON =================
@@ -131,7 +159,17 @@ public class LoginGUI extends JFrame {
         loginButton.setBounds(80, 240, 130, 40);
 
         loginButton.setBackground(
-                new Color(46, 204, 113)
+                new Color(37, 99, 235)
+        );
+        loginButton.setFocusPainted(false);
+
+        loginButton.setBorder(
+                BorderFactory.createEmptyBorder(
+                        10,
+                        20,
+                        10,
+                        20
+                )
         );
 
         loginButton.setForeground(Color.WHITE);
@@ -164,7 +202,17 @@ public class LoginGUI extends JFrame {
         exitButton.setBounds(260, 240, 130, 40);
 
         exitButton.setBackground(
-                new Color(231, 76, 60)
+                new Color(220, 38, 38)
+        );
+        exitButton.setFocusPainted(false);
+
+        exitButton.setBorder(
+                BorderFactory.createEmptyBorder(
+                        10,
+                        20,
+                        10,
+                        20
+                )
         );
 
         exitButton.setForeground(Color.WHITE);

@@ -13,29 +13,7 @@ import java.awt.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-public class HotelGUI extends JFrame {
-    JTextField nameField;
-    JTextField checkInField;
-    JTextField checkOutField;
-    JTextField roomCountField;
-    JTextField cnicField;
-    JTextField phoneField;
-    JTextField emailField;
-    JTextField addressField;
-    JCheckBox poolBox;
-    JCheckBox gymBox;
-    JCheckBox breakfastBox;
-    JCheckBox lunchBox;
-    JCheckBox dinnerBox;
-    JCheckBox indoorSportsBox;
-    JCheckBox outdoorSportsBox;
-    JButton bookButton;
-    JButton showRoomsButton;
-    JButton revenueButton;
-    JButton searchButton;
-    JButton cancelButton;
-    JButton exitButton;
-    JComboBox<String> paymentBox;
+public class HotelGUI extends JFrame {JTextField nameField;JTextField checkInField;JTextField checkOutField;JTextField roomCountField;JTextField cnicField;JTextField phoneField;JTextField emailField;JTextField addressField;JCheckBox poolBox;JCheckBox gymBox;JCheckBox breakfastBox;JCheckBox lunchBox;JCheckBox dinnerBox;JCheckBox indoorSportsBox;JCheckBox outdoorSportsBox;JButton bookButton;JButton showRoomsButton;JButton revenueButton;JButton searchButton;JButton cancelButton;JButton exitButton;JComboBox paymentBox;
 
     JTextArea roomStatusArea;
 
@@ -1487,4 +1465,5 @@ public class HotelGUI extends JFrame {
             new HotelGUI();
         });
     }
+
 }

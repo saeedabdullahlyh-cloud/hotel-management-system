@@ -44,7 +44,7 @@ public class DashboardGUI extends JFrame {
         setLayout(new BorderLayout());
 
         getContentPane().setBackground(
-                new Color(226,232,240)
+                new Color(15,23,42)
         );
 
         // ================= HEADER =================
@@ -53,7 +53,7 @@ public class DashboardGUI extends JFrame {
                 new JPanel();
 
         header.setBackground(
-                new Color(15,23,42)
+                new Color(2,6,23)
         );
 
         JLabel title =
@@ -67,7 +67,7 @@ public class DashboardGUI extends JFrame {
                 new Font(
                         "Segoe UI",
                         Font.BOLD,
-                        34
+                        38
                 )
         );
 
@@ -90,7 +90,7 @@ public class DashboardGUI extends JFrame {
         );
 
         sidebar.setBackground(
-                new Color(30,41,59)
+                new Color(15,23,42)
         );
 
         sidebar.setPreferredSize(
@@ -133,7 +133,12 @@ public class DashboardGUI extends JFrame {
             button.setFocusPainted(false);
 
             button.setBackground(
-                    new Color(59,130,246)
+                    new Color(37,99,235)
+            );
+            button.setFocusPainted(false);
+
+            button.setCursor(
+                    new Cursor(Cursor.HAND_CURSOR)
             );
 
             button.setForeground(Color.WHITE);
@@ -158,11 +163,19 @@ public class DashboardGUI extends JFrame {
             );
 
             button.setBorder(
-                    BorderFactory.createEmptyBorder(
-                            15,
-                            20,
-                            15,
-                            20
+                    BorderFactory.createCompoundBorder(
+
+                            BorderFactory.createLineBorder(
+                                    new Color(96,165,250),
+                                    2
+                            ),
+
+                            BorderFactory.createEmptyBorder(
+                                    15,
+                                    20,
+                                    15,
+                                    20
+                            )
                     )
             );
 
@@ -186,7 +199,7 @@ public class DashboardGUI extends JFrame {
                 new JPanel();
 
         centerPanel.setBackground(
-                new Color(226,232,240)
+                new Color(15,23,42)
         );
 
         centerPanel.setLayout(
@@ -300,7 +313,7 @@ public class DashboardGUI extends JFrame {
                 );
 
         chartContainer.setBackground(
-                new Color(226,232,240)
+                new Color(15,23,42)
         );
 
         chartContainer.add(chartPanel);
@@ -394,9 +407,9 @@ public class DashboardGUI extends JFrame {
                 );
 
         label.setOpaque(true);
-
+        label.setForeground(Color.WHITE);
         label.setBackground(
-                new Color(248,250,252)
+                new Color(30,41,59)
         );
         label.setPreferredSize(
                 new Dimension(
@@ -416,7 +429,7 @@ public class DashboardGUI extends JFrame {
                 BorderFactory.createCompoundBorder(
 
                         BorderFactory.createLineBorder(
-                                new Color(203,213,225),
+                                new Color(59,130,246),
                                 2
                         ),
 
