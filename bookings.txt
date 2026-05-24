@@ -1,15 +1,18 @@
-Guest Name: a
-Room: Single | ID: 1
+Guest Name: ABDULLAH SAEED
+Room: Sweet | ID: 1
+Room: Luxury | ID: 2
 ----------------------
-Guest Name: b
-Room: Single | ID: 2
-----------------------
-Guest Name: c
+Guest Name: IMRAN KHAN
 Room: Luxury | ID: 3
+Room: Double | ID: 4
+Room: Sweet | ID: 5
 ----------------------
-Guest Name: a
-Room: Single | ID: 4
+Guest Name: MAHID NIAZYI
+Room: Single | ID: 6
+Room: Sweet | ID: 7
+Room: Luxury | ID: 8
 ----------------------
-Guest Name: a
-Room: Single | ID: 5
+Guest Name: ANAS RAZA
+Room: Single | ID: 9
+Room: Sweet | ID: 10
 ----------------------
